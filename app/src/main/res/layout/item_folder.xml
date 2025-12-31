@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:paddingHorizontal="@dimen/spacing_lg"
+    android:paddingVertical="@dimen/spacing_md">
+
+    <ImageView
+        android:id="@+id/ivFolderIcon"
+        android:layout_width="@dimen/song_thumbnail_size"
+        android:layout_height="@dimen/song_thumbnail_size"
+        android:background="@drawable/bg_song_thumbnail"
+        android:contentDescription="@null"
+        android:padding="@dimen/spacing_md"
+        android:src="@drawable/ic_folder"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <LinearLayout
+        android:id="@+id/folderInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_md"
+        android:layout_marginEnd="@dimen/spacing_sm"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnOptions"
+        app:layout_constraintStart_toEndOf="@id/ivFolderIcon"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvFolderName"
+            style="@style/SongTitleStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="Folder Name"/>
+
+        <TextView
+            android:id="@+id/tvItemCount"
+            style="@style/SongSubtitleStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_xs"
+            tools:text="12 songs • 3 videos"/>
+
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btnOptions"
+        android:layout_width="@dimen/icon_size_xl"
+        android:layout_height="@dimen/icon_size_xl"
+        android:background="@drawable/ripple_circle"
+        android:contentDescription="@null"
+        android:padding="@dimen/spacing_sm"
+        android:src="@drawable/ic_more_vert"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/divider_height"
+        android:layout_marginTop="@dimen/spacing_md"
+        android:background="@color/dividerColor"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/folderInfo"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

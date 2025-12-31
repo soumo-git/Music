@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:paddingHorizontal="@dimen/spacing_lg"
+    android:paddingVertical="@dimen/spacing_md">
+
+    <!-- Song Thumbnail -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardThumbnail"
+        android:layout_width="@dimen/song_thumbnail_size"
+        android:layout_height="@dimen/song_thumbnail_size"
+        app:cardCornerRadius="@dimen/corner_radius_md"
+        app:cardElevation="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+        
+        <ImageView
+            android:id="@+id/ivThumbnail"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/cd_song_thumbnail"
+            android:scaleType="centerCrop"
+            tools:src="@drawable/ic_music_note"/>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Playing Indicator -->
+    <ImageView
+        android:id="@+id/ivPlayingIndicator"
+        android:layout_width="@dimen/icon_size_md"
+        android:layout_height="@dimen/icon_size_md"
+        android:src="@drawable/ic_equalizer"
+        android:visibility="gone"
+        android:contentDescription="@null"
+        app:layout_constraintBottom_toBottomOf="@id/cardThumbnail"
+        app:layout_constraintEnd_toEndOf="@id/cardThumbnail"
+        app:layout_constraintStart_toStartOf="@id/cardThumbnail"
+        app:layout_constraintTop_toTopOf="@id/cardThumbnail"/>
+
+    <!-- Song Info -->
+    <LinearLayout
+        android:id="@+id/songInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_md"
+        android:layout_marginEnd="@dimen/spacing_sm"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnOptions"
+        app:layout_constraintStart_toEndOf="@id/cardThumbnail"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            style="@style/SongTitleStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="Song Title Goes Here"/>
+
+        <TextView
+            android:id="@+id/tvSubtitle"
+            style="@style/SongSubtitleStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/spacing_xs"
+            tools:text="Artist Name | Album Name"/>
+
+    </LinearLayout>
+
+    <!-- Options Button -->
+    <ImageButton
+        android:id="@+id/btnOptions"
+        android:layout_width="@dimen/icon_size_xl"
+        android:layout_height="@dimen/icon_size_xl"
+        android:background="@drawable/ripple_circle"
+        android:contentDescription="@string/cd_song_options"
+        android:padding="@dimen/spacing_sm"
+        android:src="@drawable/ic_more_vert"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <!-- Divider -->
+    <View
+        android:id="@+id/divider"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/divider_height"
+        android:layout_marginTop="@dimen/spacing_md"
+        android:background="@color/dividerColor"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/songInfo"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

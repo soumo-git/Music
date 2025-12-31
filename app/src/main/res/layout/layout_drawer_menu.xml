@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="@dimen/spacing_lg">
+
+    <!-- Downloads -->
+    <LinearLayout
+        android:id="@+id/menuDownloads"
+        style="@style/DrawerItemStyle"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/drawer_item_height">
+
+        <ImageView
+            android:layout_width="@dimen/drawer_icon_size"
+            android:layout_height="@dimen/drawer_icon_size"
+            android:src="@drawable/ic_download"
+            android:contentDescription="@null"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_lg"
+            android:text="@string/downloads"
+            android:textColor="@color/textPrimary"
+            android:textSize="@dimen/text_size_lg"/>
+
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:layout_marginVertical="@dimen/spacing_md"
+        android:background="@color/dividerColor"/>
+
+    <!-- Settings -->
+    <LinearLayout
+        android:id="@+id/menuSettings"
+        style="@style/DrawerItemStyle"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/drawer_item_height">
+
+        <ImageView
+            android:layout_width="@dimen/drawer_icon_size"
+            android:layout_height="@dimen/drawer_icon_size"
+            android:src="@drawable/ic_settings"
+            android:contentDescription="@null"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_lg"
+            android:text="@string/settings"
+            android:textColor="@color/textPrimary"
+            android:textSize="@dimen/text_size_lg"/>
+
+    </LinearLayout>
+
+    <!-- Equalizer -->
+    <LinearLayout
+        android:id="@+id/menuEqualizer"
+        style="@style/DrawerItemStyle"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/drawer_item_height">
+
+        <ImageView
+            android:layout_width="@dimen/drawer_icon_size"
+            android:layout_height="@dimen/drawer_icon_size"
+            android:src="@drawable/ic_equalizer_menu"
+            android:contentDescription="@null"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_lg"
+            android:text="@string/equalizer"
+            android:textColor="@color/textPrimary"
+            android:textSize="@dimen/text_size_lg"/>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/menuUserAgreement"
+        style="@style/DrawerItemStyle"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/drawer_item_height">
+
+        <ImageView
+            android:layout_width="@dimen/drawer_icon_size"
+            android:layout_height="@dimen/drawer_icon_size"
+            android:src="@drawable/ic_agreement"
+            android:contentDescription="@null"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_lg"
+            android:text="@string/user_agreement"
+            android:textColor="@color/textPrimary"
+            android:textSize="@dimen/text_size_lg"/>
+
+    </LinearLayout>
+
+    <!-- Privacy Policy -->
+    <LinearLayout
+        android:id="@+id/menuPrivacyPolicy"
+        style="@style/DrawerItemStyle"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/drawer_item_height">
+
+        <ImageView
+            android:layout_width="@dimen/drawer_icon_size"
+            android:layout_height="@dimen/drawer_icon_size"
+            android:src="@drawable/ic_privacy"
+            android:contentDescription="@null"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_lg"
+            android:text="@string/privacy_policy"
+            android:textColor="@color/textPrimary"
+            android:textSize="@dimen/text_size_lg"/>
+
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/divider_height"
+        android:layout_marginVertical="@dimen/spacing_md"
+        android:background="@color/dividerColor"/>
+
+    <!-- Update Automatically -->
+    <LinearLayout
+        android:id="@+id/menuUpdateAutomatically"
+        style="@style/DrawerItemStyle"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/drawer_item_height">
+
+        <ImageView
+            android:layout_width="@dimen/drawer_icon_size"
+            android:layout_height="@dimen/drawer_icon_size"
+            android:src="@drawable/ic_update"
+            android:contentDescription="@null"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_lg"
+            android:text="@string/update_automatically"
+            android:textColor="@color/textPrimary"
+            android:textSize="@dimen/text_size_lg"/>
+
+    </LinearLayout>
+
+</LinearLayout>

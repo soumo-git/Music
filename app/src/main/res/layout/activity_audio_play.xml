@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <TextView
+        android:id="@+id/txt_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50.0dip"
+        android:textColor="@color/colorPrimary"
+        android:textSize="18.0sp" />
+
+    <TextView
+        android:id="@+id/txt_artist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txt_title"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10.0dip"
+        android:textColor="@color/colorPrimary"
+        android:textSize="18.0sp" />
+
+    <!-- TODO: Replace with LrcView if available in the new project -->
+    <TextView
+        android:id="@+id/list_lyrics"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="160.0dip"
+        android:layout_marginBottom="160.0dip"
+        android:text="Lyrics will be displayed here" />
+
+    <RelativeLayout
+        android:id="@+id/layout_control"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="16.0dip"
+        android:layout_marginEnd="16.0dip"
+        android:layout_marginBottom="30.0dip">
+
+        <SeekBar
+            android:id="@+id/audio_bar"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10.0dip" />
+
+        <TextView
+            android:id="@+id/txt_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/audio_bar"
+            android:layout_alignStart="@id/audio_bar"
+            android:textColor="@color/colorPrimary" />
+
+        <TextView
+            android:id="@+id/txt_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/audio_bar"
+            android:layout_alignEnd="@id/audio_bar"
+            android:textColor="@color/colorPrimary" />
+
+        <ImageView
+            android:id="@+id/img_play"
+            android:layout_width="40.0dip"
+            android:layout_height="40.0dip"
+            android:layout_below="@id/audio_bar"
+            android:layout_centerHorizontal="true"
+            android:contentDescription="@string/audio_play"
+            android:src="@drawable/ic_pause" />
+    </RelativeLayout>
+</RelativeLayout>

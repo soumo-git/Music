@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_popup_menu"
+    android:orientation="vertical"
+    android:padding="@dimen/spacing_xl">
+
+    <ImageView
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_gravity="center"
+        android:src="@drawable/ic_google"
+        android:contentDescription="@null"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_lg"
+        android:gravity="center"
+        android:text="Sign in to sync your preferences"
+        android:textColor="@color/textPrimary"
+        android:textSize="@dimen/text_size_xl"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_md"
+        android:gravity="center"
+        android:text="Open the sidebar and tap 'Sign in with Google' to get started"
+        android:textColor="@color/textSecondary"
+        android:textSize="@dimen/text_size_md"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/spacing_xl"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnDismiss"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackground"
+            android:paddingHorizontal="@dimen/spacing_lg"
+            android:paddingVertical="@dimen/spacing_sm"
+            android:text="Maybe Later"
+            android:textAllCaps="false"
+            android:textColor="@color/textSecondary"
+            android:textSize="@dimen/text_size_md"/>
+
+        <Button
+            android:id="@+id/btnOpenDrawer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/spacing_md"
+            android:background="@drawable/bg_shuffle_button"
+            android:paddingHorizontal="@dimen/spacing_xl"
+            android:paddingVertical="@dimen/spacing_sm"
+            android:text="Open Sidebar"
+            android:textAllCaps="false"
+            android:textColor="@color/shuffleButtonText"
+            android:textSize="@dimen/text_size_md"/>
+
+    </LinearLayout>
+
+</LinearLayout>

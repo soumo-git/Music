@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Margins and Paddings -->
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_sm">8dp</dimen>
+    <dimen name="spacing_md">12dp</dimen>
+    <dimen name="spacing_lg">16dp</dimen>
+    <dimen name="spacing_xl">24dp</dimen>
+    <dimen name="spacing_xxl">32dp</dimen>
+    
+    <!-- Text Sizes -->
+    <dimen name="text_size_xs">10sp</dimen>
+    <dimen name="text_size_sm">12sp</dimen>
+    <dimen name="text_size_md">14sp</dimen>
+    <dimen name="text_size_lg">16sp</dimen>
+    <dimen name="text_size_xl">18sp</dimen>
+    <dimen name="text_size_xxl">20sp</dimen>
+    <dimen name="text_size_title">24sp</dimen>
+    
+    <!-- Icon Sizes -->
+    <dimen name="icon_size_sm">16dp</dimen>
+    <dimen name="icon_size_md">24dp</dimen>
+    <dimen name="icon_size_lg">32dp</dimen>
+    <dimen name="icon_size_xl">48dp</dimen>
+    
+    <!-- Component Sizes -->
+    <dimen name="toolbar_height">56dp</dimen>
+    <dimen name="bottom_nav_height">52dp</dimen>
+    <dimen name="player_bar_height">56dp</dimen>
+    <dimen name="tab_height">48dp</dimen>
+    <dimen name="search_bar_height">44dp</dimen>
+    <dimen name="drawer_width">280dp</dimen>
+    
+    <!-- Song Item -->
+    <dimen name="song_thumbnail_size">52dp</dimen>
+    <dimen name="song_item_height">72dp</dimen>
+    <dimen name="song_thumbnail_radius">4dp</dimen>
+    
+    <!-- Player Bar -->
+    <dimen name="player_thumbnail_size">48dp</dimen>
+    <dimen name="player_button_size">40dp</dimen>
+    
+    <!-- Drawer -->
+    <dimen name="drawer_header_height">160dp</dimen>
+    <dimen name="drawer_profile_size">64dp</dimen>
+    <dimen name="drawer_item_height">52dp</dimen>
+    <dimen name="drawer_icon_size">24dp</dimen>
+    
+    <!-- Splash Screen -->
+    <dimen name="splash_icon_size">120dp</dimen>
+    
+    <!-- Corner Radius -->
+    <dimen name="corner_radius_sm">4dp</dimen>
+    <dimen name="corner_radius_md">8dp</dimen>
+    <dimen name="corner_radius_lg">12dp</dimen>
+    <dimen name="corner_radius_xl">16dp</dimen>
+    <dimen name="corner_radius_round">50dp</dimen>
+    
+    <!-- Divider -->
+    <dimen name="divider_height">0.5dp</dimen>
+    
+    <!-- Shuffle Button -->
+    <dimen name="shuffle_button_height">36dp</dimen>
+    <dimen name="shuffle_icon_size">20dp</dimen>
+</resources>

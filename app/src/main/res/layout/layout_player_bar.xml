@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:background="@drawable/bg_player_bar"
+    android:elevation="4dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:layout_marginHorizontal="12dp"
+    android:layout_marginBottom="8dp"
+    android:paddingHorizontal="8dp"
+    android:paddingVertical="6dp">
+
+    <!-- Album Art with gradient - rounded -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardThumbnail"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        app:cardCornerRadius="22dp"
+        app:cardElevation="2dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+        
+        <ImageView
+            android:id="@+id/ivPlayerThumbnail"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="Album art"/>
+    </androidx.cardview.widget.CardView>
+
+    <!-- Song Info -->
+    <LinearLayout
+        android:id="@+id/playerSongInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="8dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnPlayPause"
+        app:layout_constraintStart_toEndOf="@id/cardThumbnail"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvPlayerTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:singleLine="true"
+            android:textColor="@color/textDark"
+            android:textSize="13sp"
+            android:fontFamily="sans-serif-medium"
+            tools:text="Video - Khamoshiyan | Arijit Singh"/>
+
+        <TextView
+            android:id="@+id/tvPlayerSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/textDarkSecondary"
+            android:textSize="12sp"
+            tools:text="SonyMusicIndiaVEVO"/>
+
+    </LinearLayout>
+
+    <!-- Play/Pause Button -->
+    <ImageButton
+        android:id="@+id/btnPlayPause"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="4dp"
+        android:background="@drawable/ripple_circle"
+        android:contentDescription="@string/cd_play_pause"
+        android:padding="6dp"
+        android:src="@drawable/ic_play"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnNext"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/textDark"/>
+
+    <!-- Next Button -->
+    <ImageButton
+        android:id="@+id/btnNext"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/ripple_circle"
+        android:contentDescription="@string/cd_next_track"
+        android:padding="6dp"
+        android:src="@drawable/ic_skip_next"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/textDark"/>
+
+    <!-- Hidden progress bar for tracking -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:max="100"
+        android:progress="0"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
+    <!-- Previous button hidden but kept for compatibility -->
+    <ImageButton
+        android:id="@+id/btnPrevious"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

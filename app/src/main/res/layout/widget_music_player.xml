@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetContainer"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_widget"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="4dp"
+    android:paddingEnd="10dp"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+
+    <!-- Circular thumbnail -->
+    <ImageView
+        android:id="@+id/ivWidgetThumbnail"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="@drawable/bg_widget_thumbnail"
+        android:padding="10dp"
+        android:src="@drawable/ic_music_note"
+        android:contentDescription="Album art" />
+
+    <!-- Title and buttons column -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:orientation="vertical">
+
+        <!-- Song title -->
+        <TextView
+            android:id="@+id/tvWidgetTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxWidth="90dp"
+            android:maxLines="1"
+            android:text="No song"
+            android:textColor="#212121"
+            android:textSize="12sp" />
+
+        <!-- Buttons row -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <!-- Play/Pause button -->
+            <ImageView
+                android:id="@+id/btnWidgetPlayPause"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="Play/Pause"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_play"
+                android:tint="#000000" />
+
+            <!-- Next button -->
+            <ImageView
+                android:id="@+id/btnWidgetNext"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:layout_marginStart="4dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="Next"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_skip_next"
+                android:tint="#000000" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

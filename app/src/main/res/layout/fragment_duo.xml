@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/duoCoordinator"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/backgroundColor">
+
+    <!-- Welcome State (Before Connection) -->
+    <LinearLayout
+        android:id="@+id/welcomeContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:visibility="visible">
+
+        <!-- Duo Icon Animation Container - Wrapped in FrameLayout for reliable clicks -->
+        <FrameLayout
+            android:id="@+id/welcomeDuoIconContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackgroundBorderless">
+            
+            <ImageView
+                android:id="@+id/ivWelcomeDuoIcon"
+                android:layout_width="160dp"
+                android:layout_height="160dp"
+                android:scaleType="centerInside"
+                android:contentDescription="@string/duo" />
+                
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/tvWelcomeTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/duo_welcome_title"
+            android:textColor="@color/textPrimary"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/tvWelcomeSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:text="@string/duo_welcome_subtitle"
+            android:textColor="@color/textSecondary"
+            android:textSize="14sp"
+            android:gravity="center" />
+
+        <Button
+            android:id="@+id/btnConnectDuo"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginTop="40dp"
+            android:background="@drawable/bg_shuffle_button"
+            android:paddingHorizontal="32dp"
+            android:text="@string/duo_connect_button"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+    <!-- Connected State -->
+    <LinearLayout
+        android:id="@+id/connectedContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Top Bar -->
+        <LinearLayout
+            android:id="@+id/topBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
+            android:elevation="4dp">
+
+            <!-- Duo Icon and Title (clickable to open connection sheet) -->
+            <FrameLayout
+                android:id="@+id/duoHeaderClickable"
+                android:layout_width="wrap_content"
+                android:layout_height="56dp"
+                android:minWidth="100dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:elevation="2dp">
+                
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingHorizontal="8dp">
+
+                    <ImageView
+                        android:id="@+id/ivDuoIcon"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:scaleType="centerInside"
+                        android:contentDescription="@string/duo" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvDuoTitle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/duo"
+                            android:textColor="@color/textPrimary"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <!-- Connection type signature -->
+                        <TextView
+                            android:id="@+id/tvConnectionType"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/duo_connection_wifi_direct"
+                            android:textColor="@color/textSecondary"
+                            android:textSize="10sp" />
+
+                    </LinearLayout>
+                        
+                </LinearLayout>
+
+            </FrameLayout>
+
+            <!-- Signal Strength Indicator (white for dark mode) -->
+            <ImageView
+                android:id="@+id/ivSignalStrength"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="8dp"
+                android:src="@drawable/ic_signal_wifi_4"
+                android:contentDescription="@string/duo_signal_strength"
+                app:tint="@color/textPrimary" />
+
+            <!-- Search Bar (wider) -->
+            <EditText
+                android:id="@+id/etSearch"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:background="@drawable/bg_search_bar"
+                android:drawableStart="@drawable/ic_search"
+                android:drawablePadding="8dp"
+                android:hint="@string/search_hint"
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1"
+                android:paddingHorizontal="12dp"
+                android:textColor="@color/textPrimary"
+                android:textColorHint="@color/textSecondary"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <!-- Tab Layout (dark mode optimized) -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/backgroundColor"
+            app:tabGravity="fill"
+            app:tabIndicatorColor="@color/tabIndicator"
+            app:tabMode="scrollable"
+            app:tabSelectedTextColor="@color/tabSelectedText"
+            app:tabTextColor="@color/tabUnselectedText"
+            app:tabTextAppearance="@style/DuoTabTextAppearance" />
+
+        <!-- ViewPager for tabs -->
+        <androidx.viewpager2.widget.ViewPager2
+            android:id="@+id/viewPager"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
