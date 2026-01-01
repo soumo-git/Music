@@ -4,33 +4,71 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
-import com.android.music.databinding.FragmentDuoSongsBinding
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.android.music.databinding.FragmentDuoArtistsBinding
+import com.android.music.duo.ui.viewmodel.DuoViewModel
+import com.android.music.ui.adapter.ArtistAdapter
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 /**
- * Placeholder fragment for Duo Artists tab
- * Will show common artists between connected devices
+ * Fragment for Duo Artists tab
+ * Shows common artists between connected devices
  */
 class DuoArtistsFragment : Fragment() {
 
-    private var _binding: FragmentDuoSongsBinding? = null
+    private var _binding: FragmentDuoArtistsBinding? = null
     private val binding get() = _binding!!
+
+    private val viewModel: DuoViewModel by activityViewModels()
+    private lateinit var artistAdapter: ArtistAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentDuoSongsBinding.inflate(inflater, container, false)
+        _binding = FragmentDuoArtistsBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        // Show empty state for now
-        binding.emptyState.visibility = View.VISIBLE
-        binding.rvSongs.visibility = View.GONE
-        binding.shuffleSortRow.visibility = View.GONE
+        setupRecyclerView()
+        observeViewModel()
+    }
+
+    private fun setupRecyclerView() {
+        artistAdapter = ArtistAdapter { artist ->
+            // Get songs by this artist from common songs
+            val artistSongs = viewModel.getSongsForArtist(artist.name)
+            if (artistSongs.isNotEmpty()) {
+                Toast.makeText(requireContext(), "${artist.name}: ${artistSongs.size} songs", Toast.LENGTH_SHORT).show()
+                // Play first song from this artist
+                viewModel.playSong(artistSongs.first())
+            }
+        }
+
+        binding.rvArtists.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = artistAdapter
+            setHasFixedSize(true)
+        }
+    }
+
+    private fun observeViewModel() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.filteredArtists.collectLatest { artists ->
+                android.util.Log.d("DuoArtistsFragment", "Received ${artists.size} artists: ${artists.map { it.name }}")
+                artistAdapter.submitList(artists)
+                binding.emptyState.visibility = if (artists.isEmpty()) View.VISIBLE else View.GONE
+                binding.rvArtists.visibility = if (artists.isEmpty()) View.GONE else View.VISIBLE
+            }
+        }
     }
 
     override fun onDestroyView() {

@@ -515,6 +515,26 @@ class MainActivity : AppCompatActivity() {
             duoViewModel.setLocalSongs(songs)
         }
         
+        // Sync videos with DuoViewModel
+        viewModel.videos.observe(this) { videos ->
+            duoViewModel.setLocalVideos(videos)
+        }
+        
+        // Sync artists with DuoViewModel
+        viewModel.artists.observe(this) { artists ->
+            duoViewModel.setLocalArtists(artists)
+        }
+        
+        // Sync albums with DuoViewModel
+        viewModel.albums.observe(this) { albums ->
+            duoViewModel.setLocalAlbums(albums)
+        }
+        
+        // Sync folders with DuoViewModel
+        viewModel.folders.observe(this) { folders ->
+            duoViewModel.setLocalFolders(folders)
+        }
+        
         // Observe current song for UI updates only
         viewModel.currentSong.observe(this) { song ->
             song?.let {
@@ -540,14 +560,14 @@ class MainActivity : AppCompatActivity() {
         // Observe play song event to start service (one-time event)
         viewModel.playSongEvent.observe(this) { song ->
             song?.let {
-                // Get the current playlist from ViewModel
-                val playlist = viewModel.getCurrentPlaylist().ifEmpty { viewModel.songs.value ?: listOf(it) }
-                val serviceIntent = Intent(this, MusicService::class.java).apply {
-                    action = MusicService.ACTION_PLAY
-                    putExtra(MusicService.EXTRA_SONG, it)
-                    putParcelableArrayListExtra(MusicService.EXTRA_PLAYLIST, ArrayList(playlist))
+                // Check if Duo is connected and song is not in common list
+                if (isDuoConnected && !duoViewModel.isSongInCommonList(it)) {
+                    // Show warning dialog
+                    showNonCommonSongWarning(it)
+                } else {
+                    // Play the song normally
+                    playSongNow(it)
                 }
-                startForegroundService(serviceIntent)
                 viewModel.clearPlaySongEvent()
             }
         }
@@ -722,6 +742,37 @@ class MainActivity : AppCompatActivity() {
         playerBarBinding.progressBar.max = duration
         playerBarBinding.progressBar.progress = position
         viewModel.updateProgress(position, duration)
+    }
+    
+    /**
+     * Show warning dialog when trying to play a song not in common list while in Duo mode
+     */
+    private fun showNonCommonSongWarning(song: Song) {
+        MaterialAlertDialogBuilder(this, R.style.DarkAlertDialog)
+            .setTitle(R.string.duo_song_not_common_title)
+            .setMessage(R.string.duo_song_not_common_message)
+            .setIcon(R.drawable.ic_smartphone)
+            .setPositiveButton(R.string.duo_play_anyway) { _, _ ->
+                // Disconnect Duo and play the song
+                duoViewModel.disconnect()
+                playSongNow(song)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+    
+    /**
+     * Play a song immediately without checks
+     */
+    private fun playSongNow(song: Song) {
+        // Get the current playlist from ViewModel
+        val playlist = viewModel.getCurrentPlaylist().ifEmpty { viewModel.songs.value ?: listOf(song) }
+        val serviceIntent = Intent(this, MusicService::class.java).apply {
+            action = MusicService.ACTION_PLAY
+            putExtra(MusicService.EXTRA_SONG, song)
+            putParcelableArrayListExtra(MusicService.EXTRA_PLAYLIST, ArrayList(playlist))
+        }
+        startForegroundService(serviceIntent)
     }
 
     private fun openPlayerSheet() {

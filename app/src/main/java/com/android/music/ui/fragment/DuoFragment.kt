@@ -332,6 +332,30 @@ class DuoFragment : Fragment() {
             android.util.Log.d("DuoFragment", "Syncing ${songs.size} local songs to DuoViewModel")
             duoViewModel.setLocalSongs(songs)
         }
+        
+        // Observe local videos and sync with Duo
+        musicViewModel.videos.observe(viewLifecycleOwner) { videos ->
+            android.util.Log.d("DuoFragment", "Syncing ${videos.size} local videos to DuoViewModel")
+            duoViewModel.setLocalVideos(videos)
+        }
+        
+        // Observe local artists and sync with Duo
+        musicViewModel.artists.observe(viewLifecycleOwner) { artists ->
+            android.util.Log.d("DuoFragment", "Syncing ${artists.size} local artists to DuoViewModel")
+            duoViewModel.setLocalArtists(artists)
+        }
+        
+        // Observe local albums and sync with Duo
+        musicViewModel.albums.observe(viewLifecycleOwner) { albums ->
+            android.util.Log.d("DuoFragment", "Syncing ${albums.size} local albums to DuoViewModel")
+            duoViewModel.setLocalAlbums(albums)
+        }
+        
+        // Observe local folders and sync with Duo
+        musicViewModel.folders.observe(viewLifecycleOwner) { folders ->
+            android.util.Log.d("DuoFragment", "Syncing ${folders.size} local folders to DuoViewModel")
+            duoViewModel.setLocalFolders(folders)
+        }
     }
 
     override fun onDestroyView() {

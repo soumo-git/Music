@@ -96,6 +96,10 @@
     <string name="duo_searching">Searching for devices…</string>
     <string name="duo_disconnect">Disconnect</string>
     <string name="duo_no_common_songs">No common songs found\nBoth devices need the same songs</string>
+    <string name="duo_no_common_videos">No common videos found</string>
+    <string name="duo_no_common_artists">No common artists found</string>
+    <string name="duo_no_common_albums">No common albums found</string>
+    <string name="duo_no_common_folders">No common folders found</string>
     <string name="duo_resync">Sync Library</string>
     <string name="duo_connect_confirm_title">Connect to device?</string>
     <string name="duo_connect_confirm_message">Do you want to connect to %s?</string>
@@ -133,6 +137,9 @@
     <string name="duo_wifi_direct_connected">Connected via WiFi Direct</string>
     <string name="duo_connection_wifi_direct">WiFi Direct</string>
     <string name="duo_connection_online">Online (WebRTC)</string>
+    <string name="duo_song_not_common_title">Song Not Available</string>
+    <string name="duo_song_not_common_message">Your duo partner doesn\'t have this song. If you play it, your duo connection will be lost.</string>
+    <string name="duo_play_anyway">Play Anyway</string>
     
     <!-- Firebase -->
     <string name="default_web_client_id" translatable="false">82538693808-8vk4jv8t331p3sd1t83qrnoltefb82m8.apps.googleusercontent.com</string>

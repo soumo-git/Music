@@ -5,6 +5,10 @@ import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.music.data.model.Song
+import com.android.music.data.model.Video
+import com.android.music.data.model.Artist
+import com.android.music.data.model.Album
+import com.android.music.data.model.Folder
 import com.android.music.duo.data.model.*
 import com.android.music.duo.data.repository.DuoRepository
 import com.android.music.duo.webrtc.SignalingManager
@@ -41,6 +45,40 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
 
     private val _filteredSongs = MutableStateFlow<List<Song>>(emptyList())
     val filteredSongs: StateFlow<List<Song>> = _filteredSongs.asStateFlow()
+    
+    // Videos - derived from common songs
+    private val _commonVideos = MutableStateFlow<List<Video>>(emptyList())
+    val commonVideos: StateFlow<List<Video>> = _commonVideos.asStateFlow()
+    
+    private val _filteredVideos = MutableStateFlow<List<Video>>(emptyList())
+    val filteredVideos: StateFlow<List<Video>> = _filteredVideos.asStateFlow()
+    
+    // Artists - derived from common songs
+    private val _commonArtists = MutableStateFlow<List<Artist>>(emptyList())
+    val commonArtists: StateFlow<List<Artist>> = _commonArtists.asStateFlow()
+    
+    private val _filteredArtists = MutableStateFlow<List<Artist>>(emptyList())
+    val filteredArtists: StateFlow<List<Artist>> = _filteredArtists.asStateFlow()
+    
+    // Albums - derived from common songs
+    private val _commonAlbums = MutableStateFlow<List<Album>>(emptyList())
+    val commonAlbums: StateFlow<List<Album>> = _commonAlbums.asStateFlow()
+    
+    private val _filteredAlbums = MutableStateFlow<List<Album>>(emptyList())
+    val filteredAlbums: StateFlow<List<Album>> = _filteredAlbums.asStateFlow()
+    
+    // Folders - derived from common songs (folders containing common songs)
+    private val _commonFolders = MutableStateFlow<List<Folder>>(emptyList())
+    val commonFolders: StateFlow<List<Folder>> = _commonFolders.asStateFlow()
+    
+    private val _filteredFolders = MutableStateFlow<List<Folder>>(emptyList())
+    val filteredFolders: StateFlow<List<Folder>> = _filteredFolders.asStateFlow()
+    
+    // Local media for reference
+    private val _localVideos = MutableStateFlow<List<Video>>(emptyList())
+    private val _localArtists = MutableStateFlow<List<Artist>>(emptyList())
+    private val _localAlbums = MutableStateFlow<List<Album>>(emptyList())
+    private val _localFolders = MutableStateFlow<List<Folder>>(emptyList())
 
     // Search
     private val _searchQuery = MutableStateFlow("")
@@ -113,6 +151,7 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
                 if (songs.isNotEmpty()) {
                     _combinedCommonSongs.value = songs
                     updateFilteredSongs(songs)
+                    updateAllCommonMedia()
                     _toastMessage.emit("Found ${songs.size} common songs!")
                 }
             }
@@ -125,6 +164,7 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
                 if (songs.isNotEmpty()) {
                     _combinedCommonSongs.value = songs
                     updateFilteredSongs(songs)
+                    updateAllCommonMedia()
                     _toastMessage.emit("Found ${songs.size} common songs!")
                 }
             }
@@ -144,6 +184,18 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
                 _filteredSongs.value = filtered
             }
         }
+    }
+    
+    /**
+     * Update all common media types (videos, artists, albums, folders)
+     * Called when common songs change or when local media is set
+     */
+    private fun updateAllCommonMedia() {
+        android.util.Log.d("DuoViewModel", "updateAllCommonMedia called - commonSongs: ${_combinedCommonSongs.value.size}, localArtists: ${_localArtists.value.size}, localAlbums: ${_localAlbums.value.size}, localFolders: ${_localFolders.value.size}, localVideos: ${_localVideos.value.size}")
+        updateCommonVideos()
+        updateCommonArtists()
+        updateCommonAlbums()
+        updateCommonFolders()
     }
     
     private fun initializeWebRTC() {
@@ -426,6 +478,210 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
             _toastMessage.emit("Local songs loaded: ${songs.size}")
         }
     }
+    
+    fun setLocalVideos(videos: List<Video>) {
+        android.util.Log.d("DuoViewModel", "setLocalVideos called with ${videos.size} videos")
+        _localVideos.value = videos
+        // Update common videos if we already have common songs
+        if (_combinedCommonSongs.value.isNotEmpty()) {
+            updateCommonVideos()
+        }
+    }
+    
+    fun setLocalArtists(artists: List<Artist>) {
+        android.util.Log.d("DuoViewModel", "setLocalArtists called with ${artists.size} artists")
+        _localArtists.value = artists
+        // Update common artists if we already have common songs
+        if (_combinedCommonSongs.value.isNotEmpty()) {
+            updateCommonArtists()
+        }
+    }
+    
+    fun setLocalAlbums(albums: List<Album>) {
+        android.util.Log.d("DuoViewModel", "setLocalAlbums called with ${albums.size} albums")
+        _localAlbums.value = albums
+        // Update common albums if we already have common songs
+        if (_combinedCommonSongs.value.isNotEmpty()) {
+            updateCommonAlbums()
+        }
+    }
+    
+    fun setLocalFolders(folders: List<Folder>) {
+        android.util.Log.d("DuoViewModel", "setLocalFolders called with ${folders.size} folders")
+        _localFolders.value = folders
+        // Update common folders if we already have common songs
+        if (_combinedCommonSongs.value.isNotEmpty()) {
+            updateCommonFolders()
+        }
+    }
+    
+    /**
+     * Get songs for a specific artist from common songs
+     */
+    fun getSongsForArtist(artistName: String): List<Song> {
+        return _combinedCommonSongs.value.filter { 
+            it.artist.equals(artistName, ignoreCase = true) 
+        }
+    }
+    
+    /**
+     * Get songs for a specific album from common songs
+     */
+    fun getSongsForAlbum(albumTitle: String, artistName: String): List<Song> {
+        return _combinedCommonSongs.value.filter { 
+            it.album.equals(albumTitle, ignoreCase = true) &&
+            it.artist.equals(artistName, ignoreCase = true)
+        }
+    }
+    
+    /**
+     * Get songs for a specific folder from common songs
+     */
+    fun getSongsForFolder(folderPath: String): List<Song> {
+        val folderPathWithSep = if (folderPath.endsWith("/")) folderPath else "${folderPath}/"
+        return _combinedCommonSongs.value.filter { song ->
+            val songDir = song.path.substringBeforeLast("/") + "/"
+            songDir.startsWith(folderPathWithSep) || songDir == folderPathWithSep.dropLast(1) + "/"
+        }
+    }
+    
+    /**
+     * Update common videos based on common songs
+     * Videos are considered common if they match by title and artist
+     */
+    private fun updateCommonVideos() {
+        val commonSongs = _combinedCommonSongs.value
+        val localVideos = _localVideos.value
+        
+        android.util.Log.d("DuoViewModel", "updateCommonVideos: commonSongs=${commonSongs.size}, localVideos=${localVideos.size}")
+        
+        if (commonSongs.isEmpty() || localVideos.isEmpty()) {
+            _commonVideos.value = emptyList()
+            _filteredVideos.value = emptyList()
+            return
+        }
+        
+        // Match videos by title (case-insensitive)
+        val commonVideoTitles = commonSongs.map { it.title.lowercase() }.toSet()
+        val common = localVideos.filter { video ->
+            commonVideoTitles.contains(video.title.lowercase())
+        }
+        
+        _commonVideos.value = common
+        _filteredVideos.value = common
+        android.util.Log.d("DuoViewModel", "Common videos updated: ${common.size}")
+    }
+    
+    /**
+     * Update common artists based on common songs
+     * Artists are included if they have at least one common song
+     */
+    private fun updateCommonArtists() {
+        val commonSongs = _combinedCommonSongs.value
+        val localArtists = _localArtists.value
+        
+        android.util.Log.d("DuoViewModel", "updateCommonArtists: commonSongs=${commonSongs.size}, localArtists=${localArtists.size}")
+        
+        if (commonSongs.isEmpty() || localArtists.isEmpty()) {
+            _commonArtists.value = emptyList()
+            _filteredArtists.value = emptyList()
+            return
+        }
+        
+        // Get unique artist names from common songs
+        val commonArtistNames = commonSongs.map { it.artist.lowercase() }.toSet()
+        android.util.Log.d("DuoViewModel", "Common artist names: $commonArtistNames")
+        
+        // Filter local artists that have common songs
+        val common = localArtists.filter { artist ->
+            commonArtistNames.contains(artist.name.lowercase())
+        }.map { artist ->
+            // Update song count to reflect only common songs
+            val songCount = commonSongs.count { it.artist.equals(artist.name, ignoreCase = true) }
+            artist.copy(songCount = songCount)
+        }
+        
+        _commonArtists.value = common
+        _filteredArtists.value = common
+        android.util.Log.d("DuoViewModel", "Common artists updated: ${common.size}")
+    }
+    
+    /**
+     * Update common albums based on common songs
+     * Albums are included if they have at least one common song
+     */
+    private fun updateCommonAlbums() {
+        val commonSongs = _combinedCommonSongs.value
+        val localAlbums = _localAlbums.value
+        
+        android.util.Log.d("DuoViewModel", "updateCommonAlbums: commonSongs=${commonSongs.size}, localAlbums=${localAlbums.size}")
+        
+        if (commonSongs.isEmpty() || localAlbums.isEmpty()) {
+            _commonAlbums.value = emptyList()
+            _filteredAlbums.value = emptyList()
+            return
+        }
+        
+        // Get unique album titles from common songs
+        val commonAlbumTitles = commonSongs.map { "${it.album.lowercase()}|${it.artist.lowercase()}" }.toSet()
+        
+        // Filter local albums that have common songs
+        val common = localAlbums.filter { album ->
+            commonAlbumTitles.contains("${album.title.lowercase()}|${album.artist.lowercase()}")
+        }.map { album ->
+            // Update song count to reflect only common songs
+            val songCount = commonSongs.count { 
+                it.album.equals(album.title, ignoreCase = true) && 
+                it.artist.equals(album.artist, ignoreCase = true)
+            }
+            album.copy(songCount = songCount)
+        }
+        
+        _commonAlbums.value = common
+        _filteredAlbums.value = common
+        android.util.Log.d("DuoViewModel", "Common albums updated: ${common.size}")
+    }
+    
+    /**
+     * Update common folders based on common songs
+     * Folders are included if they contain at least one common song
+     * Note: Folder names may differ, so we match by the songs they contain
+     */
+    private fun updateCommonFolders() {
+        val commonSongs = _combinedCommonSongs.value
+        val localFolders = _localFolders.value
+        
+        android.util.Log.d("DuoViewModel", "updateCommonFolders: commonSongs=${commonSongs.size}, localFolders=${localFolders.size}")
+        
+        if (commonSongs.isEmpty() || localFolders.isEmpty()) {
+            _commonFolders.value = emptyList()
+            _filteredFolders.value = emptyList()
+            return
+        }
+        
+        // Filter folders that contain at least one common song
+        val common = localFolders.filter { folder ->
+            // Ensure folder path ends with separator for proper matching
+            val folderPathWithSep = if (folder.path.endsWith("/")) folder.path else "${folder.path}/"
+            // Check if any common song is in this folder
+            commonSongs.any { song ->
+                val songDir = song.path.substringBeforeLast("/") + "/"
+                songDir.startsWith(folderPathWithSep) || songDir == folderPathWithSep.dropLast(1) + "/"
+            }
+        }.map { folder ->
+            // Update song count to reflect only common songs in this folder
+            val folderPathWithSep = if (folder.path.endsWith("/")) folder.path else "${folder.path}/"
+            val songCount = commonSongs.count { song ->
+                val songDir = song.path.substringBeforeLast("/") + "/"
+                songDir.startsWith(folderPathWithSep) || songDir == folderPathWithSep.dropLast(1) + "/"
+            }
+            folder.copy(songCount = songCount)
+        }
+        
+        _commonFolders.value = common
+        _filteredFolders.value = common
+        android.util.Log.d("DuoViewModel", "Common folders updated: ${common.size}")
+    }
 
     fun setSearchQuery(query: String) {
         _searchQuery.value = query
@@ -517,6 +773,13 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
     fun isConnected(): Boolean {
         return connectionState.value is DuoConnectionState.Connected ||
                 webRTCRepository.isConnected()
+    }
+    
+    /**
+     * Check if a song is in the common songs list (available to both partners)
+     */
+    fun isSongInCommonList(song: Song): Boolean {
+        return _combinedCommonSongs.value.any { it.id == song.id }
     }
 
     // Playback controls
