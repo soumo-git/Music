@@ -60,6 +60,13 @@ class WebRTCManager(private val context: Context) {
     // Data channel state
     private val _dataChannelOpen = MutableStateFlow(false)
     val dataChannelOpen: StateFlow<Boolean> = _dataChannelOpen.asStateFlow()
+    
+    // Connection quality (0-100, based on RTT and packet loss)
+    private val _connectionQuality = MutableStateFlow(0)
+    val connectionQuality: StateFlow<Int> = _connectionQuality.asStateFlow()
+    
+    // Stats polling job
+    private var statsPollingRunnable: Runnable? = null
 
     sealed class WebRTCConnectionState {
         object Idle : WebRTCConnectionState()
@@ -122,13 +129,19 @@ class WebRTCManager(private val context: Context) {
                 when (state) {
                     PeerConnection.IceConnectionState.CONNECTED -> {
                         _connectionState.value = WebRTCConnectionState.Connected
+                        // Start polling connection stats
+                        startStatsPolling()
                     }
                     PeerConnection.IceConnectionState.DISCONNECTED,
                     PeerConnection.IceConnectionState.FAILED -> {
                         _connectionState.value = WebRTCConnectionState.Disconnected
+                        stopStatsPolling()
+                        _connectionQuality.value = 0
                     }
                     PeerConnection.IceConnectionState.CLOSED -> {
                         _connectionState.value = WebRTCConnectionState.Idle
+                        stopStatsPolling()
+                        _connectionQuality.value = 0
                     }
                     else -> {}
                 }
@@ -447,6 +460,97 @@ class WebRTCManager(private val context: Context) {
     }
 
     /**
+     * Start polling connection stats for quality monitoring
+     */
+    private fun startStatsPolling() {
+        stopStatsPolling()
+        
+        statsPollingRunnable = object : Runnable {
+            override fun run() {
+                peerConnection?.getStats { report ->
+                    var rtt = -1.0
+                    var packetsLost = 0L
+                    var packetsReceived = 0L
+                    
+                    report.statsMap.values.forEach { stats ->
+                        when (stats.type) {
+                            "candidate-pair" -> {
+                                // Get RTT from candidate pair stats
+                                stats.members["currentRoundTripTime"]?.let { value ->
+                                    rtt = (value as? Double) ?: -1.0
+                                }
+                            }
+                            "inbound-rtp" -> {
+                                // Get packet loss info
+                                stats.members["packetsLost"]?.let { value ->
+                                    packetsLost += ((value as? Number)?.toLong() ?: 0L)
+                                }
+                                stats.members["packetsReceived"]?.let { value ->
+                                    packetsReceived += ((value as? Number)?.toLong() ?: 0L)
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Calculate quality score (0-100)
+                    val quality = calculateQualityScore(rtt, packetsLost, packetsReceived)
+                    _connectionQuality.value = quality
+                    Log.d(TAG, "Connection quality: $quality (RTT: ${rtt}s, lost: $packetsLost, received: $packetsReceived)")
+                }
+                
+                // Poll every 3 seconds
+                mainHandler.postDelayed(this, 3000)
+            }
+        }
+        mainHandler.post(statsPollingRunnable!!)
+    }
+    
+    /**
+     * Stop polling connection stats
+     */
+    private fun stopStatsPolling() {
+        statsPollingRunnable?.let { mainHandler.removeCallbacks(it) }
+        statsPollingRunnable = null
+    }
+    
+    /**
+     * Calculate quality score based on RTT and packet loss
+     */
+    private fun calculateQualityScore(rtt: Double, packetsLost: Long, packetsReceived: Long): Int {
+        // If no data yet, assume good quality
+        if (rtt < 0 && packetsReceived == 0L) {
+            return 80 // Default to good
+        }
+        
+        var score = 100
+        
+        // RTT scoring (in seconds)
+        if (rtt >= 0) {
+            score -= when {
+                rtt > 0.5 -> 50  // Very high latency
+                rtt > 0.3 -> 30  // High latency
+                rtt > 0.15 -> 15 // Medium latency
+                rtt > 0.05 -> 5  // Low latency
+                else -> 0        // Excellent
+            }
+        }
+        
+        // Packet loss scoring
+        if (packetsReceived > 0) {
+            val lossRate = packetsLost.toDouble() / (packetsLost + packetsReceived)
+            score -= when {
+                lossRate > 0.1 -> 40  // >10% loss
+                lossRate > 0.05 -> 25 // >5% loss
+                lossRate > 0.02 -> 15 // >2% loss
+                lossRate > 0.01 -> 5  // >1% loss
+                else -> 0
+            }
+        }
+        
+        return score.coerceIn(0, 100)
+    }
+
+    /**
      * Send message through data channel
      */
     fun sendMessage(message: String): Boolean {
@@ -468,6 +572,9 @@ class WebRTCManager(private val context: Context) {
     fun disconnect() {
         Log.d(TAG, "Disconnecting...")
         
+        // Stop stats polling
+        stopStatsPolling()
+        
         // Remove any pending polling callbacks
         mainHandler.removeCallbacksAndMessages(null)
         
@@ -479,6 +586,7 @@ class WebRTCManager(private val context: Context) {
         
         _connectionState.value = WebRTCConnectionState.Idle
         _dataChannelOpen.value = false
+        _connectionQuality.value = 0
     }
 
     /**

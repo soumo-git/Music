@@ -140,6 +140,9 @@
     <string name="duo_song_not_common_title">Song Not Available</string>
     <string name="duo_song_not_common_message">Your duo partner doesn\'t have this song. If you play it, your duo connection will be lost.</string>
     <string name="duo_play_anyway">Play Anyway</string>
+    <string name="duo_chat">Chat</string>
+    <string name="duo_chat_title">Duo Chat</string>
+    <string name="duo_type_message">Type a message</string>
     
     <!-- Firebase -->
     <string name="default_web_client_id" translatable="false">82538693808-8vk4jv8t331p3sd1t83qrnoltefb82m8.apps.googleusercontent.com</string>

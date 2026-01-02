@@ -109,6 +109,50 @@ data class DuoMessage(
         fun createDisconnect(): DuoMessage {
             return DuoMessage(type = MessageType.DISCONNECT, payload = "")
         }
+        
+        fun createPing(): DuoMessage {
+            return DuoMessage(type = MessageType.PING, payload = "")
+        }
+        
+        fun createPong(): DuoMessage {
+            return DuoMessage(type = MessageType.PONG, payload = "")
+        }
+        
+        fun createChatMessage(messageId: String, text: String, senderName: String): DuoMessage {
+            return DuoMessage(
+                type = MessageType.CHAT_MESSAGE,
+                payload = gson.toJson(ChatMessagePayload(messageId, text, senderName))
+            )
+        }
+        
+        fun createTypingStart(): DuoMessage {
+            return DuoMessage(type = MessageType.TYPING_START, payload = "")
+        }
+        
+        fun createTypingStop(): DuoMessage {
+            return DuoMessage(type = MessageType.TYPING_STOP, payload = "")
+        }
+        
+        fun createMessageDelivered(messageId: String): DuoMessage {
+            return DuoMessage(
+                type = MessageType.MESSAGE_DELIVERED,
+                payload = gson.toJson(MessageAckPayload(messageId))
+            )
+        }
+        
+        fun createMessageRead(messageId: String): DuoMessage {
+            return DuoMessage(
+                type = MessageType.MESSAGE_READ,
+                payload = gson.toJson(MessageAckPayload(messageId))
+            )
+        }
+        
+        fun createVoiceMessage(messageId: String, senderName: String, duration: Long, audioBase64: String): DuoMessage {
+            return DuoMessage(
+                type = MessageType.VOICE_MESSAGE,
+                payload = gson.toJson(VoiceMessagePayload(messageId, senderName, duration, audioBase64))
+            )
+        }
     }
 
     fun toJson(): String = gson.toJson(this)
@@ -131,7 +175,15 @@ enum class MessageType {
     CONNECTION_ACCEPT,
     CONNECTION_REJECT,
     DISCONNECT,
-    HEARTBEAT
+    HEARTBEAT,
+    PING,
+    PONG,
+    CHAT_MESSAGE,
+    TYPING_START,
+    TYPING_STOP,
+    MESSAGE_DELIVERED,
+    MESSAGE_READ,
+    VOICE_MESSAGE
 }
 
 // Payload classes
@@ -143,3 +195,6 @@ data class QueuePayload(val songHashes: List<String>)
 data class SyncLibraryPayload(val songHashes: List<SongHash>)
 data class SyncResponsePayload(val commonHashes: List<String>)
 data class ConnectionPayload(val deviceName: String, val userId: String)
+data class ChatMessagePayload(val messageId: String, val text: String, val senderName: String)
+data class MessageAckPayload(val messageId: String)
+data class VoiceMessagePayload(val messageId: String, val senderName: String, val duration: Long, val audioBase64: String)

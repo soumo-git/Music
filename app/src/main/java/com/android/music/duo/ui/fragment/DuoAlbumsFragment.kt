@@ -4,12 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.android.music.databinding.FragmentDuoAlbumsBinding
+import com.android.music.duo.ui.activity.DuoSongsListActivity
 import com.android.music.duo.ui.viewmodel.DuoViewModel
 import com.android.music.ui.adapter.AlbumAdapter
 import kotlinx.coroutines.flow.collectLatest
@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Fragment for Duo Albums tab
- * Shows common albums between connected devices
+ * Shows common albums between connected devices (derived from common songs)
  */
 class DuoAlbumsFragment : Fragment() {
 
@@ -44,12 +44,10 @@ class DuoAlbumsFragment : Fragment() {
 
     private fun setupRecyclerView() {
         albumAdapter = AlbumAdapter { album ->
-            // Get songs from this album from common songs
+            // Get songs from this album from common songs and open songs list
             val albumSongs = viewModel.getSongsForAlbum(album.title, album.artist)
             if (albumSongs.isNotEmpty()) {
-                Toast.makeText(requireContext(), "${album.title}: ${albumSongs.size} songs", Toast.LENGTH_SHORT).show()
-                // Play first song from this album
-                viewModel.playSong(albumSongs.first())
+                DuoSongsListActivity.start(requireContext(), album.title, albumSongs)
             }
         }
 
@@ -63,7 +61,7 @@ class DuoAlbumsFragment : Fragment() {
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.filteredAlbums.collectLatest { albums ->
-                android.util.Log.d("DuoAlbumsFragment", "Received ${albums.size} albums: ${albums.map { it.title }}")
+                android.util.Log.d("DuoAlbumsFragment", "Received ${albums.size} albums")
                 albumAdapter.submitList(albums)
                 binding.emptyState.visibility = if (albums.isEmpty()) View.VISIBLE else View.GONE
                 binding.rvAlbums.visibility = if (albums.isEmpty()) View.GONE else View.VISIBLE

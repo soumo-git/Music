@@ -85,6 +85,11 @@ dependencies {
     implementation(libs.androidx.compose.runtime)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
+    implementation("androidx.compose.ui:ui-tooling-preview:1.7.0")
+    implementation("androidx.activity:activity-compose:1.9.0")
+    
+    // Coil for Compose image loading
+    implementation("io.coil-kt:coil-compose:2.5.0")
     
     // ExoPlayer for video playback (Media3)
     implementation("androidx.media3:media3-exoplayer:1.2.0")

@@ -2,10 +2,18 @@ package com.android.music.duo.service
 
 import android.util.Log
 import com.android.music.duo.data.model.DuoMessage
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -23,8 +31,11 @@ class DuoSocketManager {
         private const val TAG = "DuoSocketManager"
         const val PORT = 8888
         private const val SOCKET_TIMEOUT = 5000
+        private const val PING_INTERVAL_MS = 3000L
     }
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    
     private var serverSocket: ServerSocket? = null
     private var clientSocket: Socket? = null
     private var writer: PrintWriter? = null
@@ -35,6 +46,14 @@ class DuoSocketManager {
 
     private val _connectionStatus = MutableSharedFlow<ConnectionStatus>(replay = 1)
     val connectionStatus: SharedFlow<ConnectionStatus> = _connectionStatus.asSharedFlow()
+    
+    // Connection quality (0-100)
+    private val _connectionQuality = MutableStateFlow(0)
+    val connectionQuality: StateFlow<Int> = _connectionQuality.asStateFlow()
+    
+    // Ping tracking
+    private var lastPingSentTime = 0L
+    private var pingJob: Job? = null
 
     private var isRunning = false
 
@@ -85,6 +104,7 @@ class DuoSocketManager {
                 Log.d(TAG, "Connected to server! Emitting Connected status...")
                 _connectionStatus.emit(ConnectionStatus.Connected)
                 Log.d(TAG, "Connected status emitted, starting listener...")
+                startPingMonitoring()
                 startListening()
             }
         } catch (e: Exception) {
@@ -100,12 +120,74 @@ class DuoSocketManager {
         Log.d(TAG, "Client connected from: ${socket.inetAddress}, emitting Connected status...")
         _connectionStatus.emit(ConnectionStatus.Connected)
         Log.d(TAG, "Connected status emitted, starting listener...")
+        startPingMonitoring()
         startListening()
     }
 
     private fun setupStreams(socket: Socket) {
         writer = PrintWriter(socket.getOutputStream(), true)
         reader = BufferedReader(InputStreamReader(socket.getInputStream()))
+    }
+    
+    /**
+     * Start ping monitoring for connection quality
+     */
+    private fun startPingMonitoring() {
+        stopPingMonitoring()
+        pingJob = scope.launch {
+            while (isRunning && isConnected()) {
+                sendPing()
+                delay(PING_INTERVAL_MS)
+            }
+        }
+    }
+    
+    /**
+     * Stop ping monitoring
+     */
+    private fun stopPingMonitoring() {
+        pingJob?.cancel()
+        pingJob = null
+    }
+    
+    /**
+     * Send a ping message
+     */
+    private suspend fun sendPing() {
+        try {
+            lastPingSentTime = System.currentTimeMillis()
+            val pingMessage = DuoMessage.createPing()
+            writer?.println(pingMessage.toJson())
+            writer?.flush()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error sending ping", e)
+        }
+    }
+    
+    /**
+     * Handle received pong and calculate latency
+     */
+    private fun handlePong() {
+        if (lastPingSentTime > 0) {
+            val rtt = System.currentTimeMillis() - lastPingSentTime
+            val quality = calculateQualityFromRtt(rtt)
+            _connectionQuality.value = quality
+            Log.d(TAG, "Ping RTT: ${rtt}ms, Quality: $quality")
+        }
+    }
+    
+    /**
+     * Calculate quality score from RTT
+     */
+    private fun calculateQualityFromRtt(rtt: Long): Int {
+        return when {
+            rtt < 50 -> 100   // Excellent
+            rtt < 100 -> 85   // Very good
+            rtt < 200 -> 70   // Good
+            rtt < 400 -> 50   // Fair
+            rtt < 800 -> 30   // Poor
+            else -> 10        // Very poor
+        }
     }
 
     private suspend fun startListening() = withContext(Dispatchers.IO) {
@@ -115,8 +197,23 @@ class DuoSocketManager {
                 val line = reader?.readLine() ?: break
                 Log.d(TAG, "Received raw message: ${line.take(200)}...") // Log first 200 chars
                 DuoMessage.fromJson(line)?.let { message ->
-                    Log.d(TAG, "Parsed message type: ${message.type}")
-                    _incomingMessages.emit(message)
+                    // Handle ping/pong internally
+                    when (message.type) {
+                        com.android.music.duo.data.model.MessageType.PING -> {
+                            // Respond with pong
+                            val pongMessage = DuoMessage.createPong()
+                            writer?.println(pongMessage.toJson())
+                            writer?.flush()
+                        }
+                        com.android.music.duo.data.model.MessageType.PONG -> {
+                            // Calculate latency
+                            handlePong()
+                        }
+                        else -> {
+                            Log.d(TAG, "Parsed message type: ${message.type}")
+                            _incomingMessages.emit(message)
+                        }
+                    }
                 } ?: Log.e(TAG, "Failed to parse message")
             }
             Log.d(TAG, "Stopped listening - isRunning=$isRunning, isConnected=${clientSocket?.isConnected}")
@@ -150,6 +247,8 @@ class DuoSocketManager {
      */
     fun disconnect() {
         isRunning = false
+        stopPingMonitoring()
+        _connectionQuality.value = 0
         try {
             writer?.close()
             reader?.close()

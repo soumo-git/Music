@@ -46,6 +46,22 @@ class DuoRepository(context: Context) {
 
     private val _incomingCommand = MutableSharedFlow<DuoCommand>()
     val incomingCommand: SharedFlow<DuoCommand> = _incomingCommand.asSharedFlow()
+    
+    // Chat message handling
+    private val _incomingChatMessage = MutableSharedFlow<ChatMessagePayload>()
+    val incomingChatMessage: SharedFlow<ChatMessagePayload> = _incomingChatMessage.asSharedFlow()
+    
+    private val _incomingVoiceMessage = MutableSharedFlow<VoiceMessagePayload>()
+    val incomingVoiceMessage: SharedFlow<VoiceMessagePayload> = _incomingVoiceMessage.asSharedFlow()
+    
+    private val _messageDelivered = MutableSharedFlow<String>()
+    val messageDelivered: SharedFlow<String> = _messageDelivered.asSharedFlow()
+    
+    private val _messageRead = MutableSharedFlow<String>()
+    val messageRead: SharedFlow<String> = _messageRead.asSharedFlow()
+    
+    private val _isPartnerTyping = MutableStateFlow(false)
+    val isPartnerTyping: StateFlow<Boolean> = _isPartnerTyping.asStateFlow()
 
     val discoveredDevices: StateFlow<List<DuoDevice>> = wifiDirectManager.discoveredDevices
     val isWifiP2pEnabled: StateFlow<Boolean> = wifiDirectManager.isWifiP2pEnabled
@@ -68,6 +84,31 @@ class DuoRepository(context: Context) {
         observeConnectionInfo()
         observeSocketMessages()
         observeSocketStatus()
+        observeConnectionQuality()
+    }
+    
+    /**
+     * Observe socket connection quality and convert to SignalStrength
+     */
+    private fun observeConnectionQuality() {
+        scope.launch {
+            socketManager.connectionQuality.collect { quality ->
+                _signalStrength.value = qualityToSignalStrength(quality)
+            }
+        }
+    }
+    
+    /**
+     * Convert quality score (0-100) to SignalStrength enum
+     */
+    private fun qualityToSignalStrength(quality: Int): SignalStrength {
+        return when {
+            quality >= 80 -> SignalStrength.EXCELLENT
+            quality >= 60 -> SignalStrength.GOOD
+            quality >= 40 -> SignalStrength.FAIR
+            quality >= 20 -> SignalStrength.WEAK
+            else -> SignalStrength.NONE
+        }
     }
 
     private fun observeConnectionInfo() {
@@ -92,7 +133,9 @@ class DuoRepository(context: Context) {
                 Log.d(TAG, "Socket status changed: $status")
                 when (status) {
                     is ConnectionStatus.Connected -> {
-                        _signalStrength.value = SignalStrength.EXCELLENT
+                        // Signal strength will be updated by observeConnectionQuality
+                        // Set initial value to GOOD until ping measurements come in
+                        _signalStrength.value = SignalStrength.GOOD
                         
                         // Update connection state to Connected immediately
                         val currentState = _connectionState.value
@@ -203,6 +246,42 @@ class DuoRepository(context: Context) {
             MessageType.DISCONNECT -> {
                 _incomingCommand.emit(DuoCommand.RequestDisconnect)
                 disconnect()
+            }
+            // Chat messages
+            MessageType.CHAT_MESSAGE -> {
+                val payload = parsePayload<ChatMessagePayload>(message.payload)
+                payload?.let {
+                    _incomingChatMessage.emit(it)
+                    _isPartnerTyping.value = false
+                }
+            }
+            MessageType.TYPING_START -> {
+                _isPartnerTyping.value = true
+            }
+            MessageType.TYPING_STOP -> {
+                _isPartnerTyping.value = false
+            }
+            MessageType.MESSAGE_DELIVERED -> {
+                val payload = parsePayload<MessageAckPayload>(message.payload)
+                payload?.let {
+                    android.util.Log.d(TAG, "Received MESSAGE_DELIVERED for: ${it.messageId}")
+                    _messageDelivered.emit(it.messageId)
+                }
+            }
+            MessageType.MESSAGE_READ -> {
+                val payload = parsePayload<MessageAckPayload>(message.payload)
+                payload?.let {
+                    android.util.Log.d(TAG, "Received MESSAGE_READ for: ${it.messageId}")
+                    _messageRead.emit(it.messageId)
+                }
+            }
+            MessageType.VOICE_MESSAGE -> {
+                val payload = parsePayload<VoiceMessagePayload>(message.payload)
+                payload?.let {
+                    android.util.Log.d(TAG, "Received VOICE_MESSAGE from: ${it.senderName}")
+                    _incomingVoiceMessage.emit(it)
+                    _isPartnerTyping.value = false
+                }
             }
             else -> {}
         }
@@ -470,6 +549,25 @@ class DuoRepository(context: Context) {
         Log.d(TAG, "sendClearQueue called")
         val success = socketManager.sendMessage(DuoMessage.createClearQueue())
         Log.d(TAG, "ClearQueue message sent: $success")
+    }
+    
+    // Chat methods
+    
+    suspend fun sendChatMessage(message: DuoMessage): Boolean {
+        Log.d(TAG, "sendChatMessage called")
+        return socketManager.sendMessage(message)
+    }
+    
+    suspend fun sendMessage(message: DuoMessage): Boolean {
+        return socketManager.sendMessage(message)
+    }
+    
+    suspend fun sendTypingStart() {
+        socketManager.sendMessage(DuoMessage.createTypingStart())
+    }
+    
+    suspend fun sendTypingStop() {
+        socketManager.sendMessage(DuoMessage.createTypingStop())
     }
 
     fun cleanup() {

@@ -45,6 +45,35 @@
                 android:fontFamily="sans-serif-medium" />
 
         </LinearLayout>
+        
+        <!-- Chat Button with Badge -->
+        <FrameLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp">
+            
+            <ImageButton
+                android:id="@+id/btnChat"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/ripple_circle"
+                android:contentDescription="@string/duo_chat"
+                android:padding="8dp"
+                android:src="@drawable/ic_chat"
+                app:tint="@color/textPrimary" />
+            
+            <!-- Unread message badge -->
+            <View
+                android:id="@+id/chatBadge"
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/bg_badge_dot"
+                android:visibility="gone" />
+                
+        </FrameLayout>
 
         <View
             android:layout_width="0dp"

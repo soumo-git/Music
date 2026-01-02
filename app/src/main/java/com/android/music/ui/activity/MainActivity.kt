@@ -145,6 +145,36 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    
+    // Receiver for Duo sync broadcasts from DuoSongsListActivity
+    private val duoSyncReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (!isDuoConnected) return
+            
+            when (intent?.action) {
+                com.android.music.duo.ui.activity.DuoSongsListActivity.ACTION_DUO_PLAY -> {
+                    val song = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        intent.getParcelableExtra(com.android.music.duo.ui.activity.DuoSongsListActivity.EXTRA_SONG, Song::class.java)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        intent.getParcelableExtra(com.android.music.duo.ui.activity.DuoSongsListActivity.EXTRA_SONG)
+                    }
+                    song?.let {
+                        android.util.Log.d("MainActivity", "DuoSongsListActivity play - syncing with Duo: ${it.title}")
+                        duoViewModel.syncSongChange(it)
+                    }
+                }
+                com.android.music.duo.ui.activity.DuoSongsListActivity.ACTION_DUO_PAUSE -> {
+                    android.util.Log.d("MainActivity", "DuoSongsListActivity pause - syncing with Duo")
+                    duoViewModel.syncPause()
+                }
+                com.android.music.duo.ui.activity.DuoSongsListActivity.ACTION_DUO_RESUME -> {
+                    android.util.Log.d("MainActivity", "DuoSongsListActivity resume - syncing with Duo")
+                    duoViewModel.syncResume()
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -793,11 +823,20 @@ class MainActivity : AppCompatActivity() {
             addAction(MusicService.BROADCAST_SONG_CHANGE)
         }
         LocalBroadcastManager.getInstance(this).registerReceiver(playbackReceiver, filter)
+        
+        // Register Duo sync receiver for broadcasts from DuoSongsListActivity
+        val duoSyncFilter = IntentFilter().apply {
+            addAction(com.android.music.duo.ui.activity.DuoSongsListActivity.ACTION_DUO_PLAY)
+            addAction(com.android.music.duo.ui.activity.DuoSongsListActivity.ACTION_DUO_PAUSE)
+            addAction(com.android.music.duo.ui.activity.DuoSongsListActivity.ACTION_DUO_RESUME)
+        }
+        LocalBroadcastManager.getInstance(this).registerReceiver(duoSyncReceiver, duoSyncFilter)
     }
 
     override fun onDestroy() {
         super.onDestroy()
         LocalBroadcastManager.getInstance(this).unregisterReceiver(playbackReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(duoSyncReceiver)
         contentResolver.unregisterContentObserver(mediaObserver)
     }
 

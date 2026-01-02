@@ -4,12 +4,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.music.databinding.FragmentDuoFoldersBinding
+import com.android.music.duo.ui.activity.DuoSongsListActivity
 import com.android.music.duo.ui.viewmodel.DuoViewModel
 import com.android.music.ui.adapter.FolderAdapter
 import kotlinx.coroutines.flow.collectLatest
@@ -45,12 +45,10 @@ class DuoFoldersFragment : Fragment() {
 
     private fun setupRecyclerView() {
         folderAdapter = FolderAdapter { folder ->
-            // Get songs from this folder from common songs
+            // Get songs from this folder from common songs and open songs list
             val folderSongs = viewModel.getSongsForFolder(folder.path)
             if (folderSongs.isNotEmpty()) {
-                Toast.makeText(requireContext(), "${folder.name}: ${folderSongs.size} songs", Toast.LENGTH_SHORT).show()
-                // Play first song from this folder
-                viewModel.playSong(folderSongs.first())
+                DuoSongsListActivity.start(requireContext(), folder.name, folderSongs)
             }
         }
 
@@ -64,7 +62,7 @@ class DuoFoldersFragment : Fragment() {
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.filteredFolders.collectLatest { folders ->
-                android.util.Log.d("DuoFoldersFragment", "Received ${folders.size} folders: ${folders.map { it.name }}")
+                android.util.Log.d("DuoFoldersFragment", "Received ${folders.size} folders")
                 folderAdapter.submitList(folders)
                 binding.emptyState.visibility = if (folders.isEmpty()) View.VISIBLE else View.GONE
                 binding.rvFolders.visibility = if (folders.isEmpty()) View.GONE else View.VISIBLE

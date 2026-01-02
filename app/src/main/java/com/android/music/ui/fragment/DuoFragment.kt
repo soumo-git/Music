@@ -233,42 +233,53 @@ class DuoFragment : Fragment() {
                 updateConnectionTypeSignature()
                 animateDuoIconToTopLeft()
             }
-            is WebRTCConnectionState.Disconnected -> {
+            is WebRTCConnectionState.Disconnected,
+            is WebRTCConnectionState.Idle -> {
+                android.util.Log.d("DuoFragment", "WebRTC Disconnected/Idle")
                 isWebRTCConnected = false
                 // Only show welcome state if WiFi Direct is also disconnected
-                if (duoViewModel.connectionState.value is DuoConnectionState.Disconnected) {
-                    android.util.Log.d("DuoFragment", "WebRTC Disconnected, showing welcome state")
+                if (duoViewModel.connectionState.value !is DuoConnectionState.Connected) {
+                    android.util.Log.d("DuoFragment", "Both connections disconnected, showing welcome state")
+                    showWelcomeState()
+                }
+            }
+            is WebRTCConnectionState.Error -> {
+                android.util.Log.d("DuoFragment", "WebRTC Error: ${state.message}")
+                isWebRTCConnected = false
+                if (duoViewModel.connectionState.value !is DuoConnectionState.Connected) {
                     showWelcomeState()
                 }
             }
             else -> {
-                // For other states (Idle, CheckingPartner, CreatingOffer, etc.), don't change UI
+                // For other states (CheckingPartner, CreatingOffer, etc.), don't change UI
             }
         }
     }
 
     private fun updateUIForConnectionState(state: DuoConnectionState) {
-        android.util.Log.d("DuoFragment", "Updating UI for state: $state")
+        android.util.Log.d("DuoFragment", "Updating UI for WiFi Direct state: $state")
         when (state) {
             is DuoConnectionState.Disconnected,
-            is DuoConnectionState.Searching,
             is DuoConnectionState.Error -> {
+                android.util.Log.d("DuoFragment", "WiFi Direct Disconnected/Error")
                 isWifiDirectConnected = false
                 // Only show welcome state if WebRTC is also disconnected
                 if (!isWebRTCConnected) {
-                    android.util.Log.d("DuoFragment", "Showing welcome state")
+                    android.util.Log.d("DuoFragment", "Both connections disconnected, showing welcome state")
                     showWelcomeState()
                 }
             }
+            is DuoConnectionState.Searching,
             is DuoConnectionState.Connecting -> {
-                // Keep showing welcome state while connecting
-                android.util.Log.d("DuoFragment", "Showing welcome state (connecting)")
+                // Keep showing current state while searching/connecting
+                android.util.Log.d("DuoFragment", "WiFi Direct Searching/Connecting")
+                isWifiDirectConnected = false
                 if (!isWebRTCConnected) {
                     showWelcomeState()
                 }
             }
             is DuoConnectionState.Connected -> {
-                android.util.Log.d("DuoFragment", "Showing connected state, isHost=${state.isHost}")
+                android.util.Log.d("DuoFragment", "WiFi Direct Connected, isHost=${state.isHost}")
                 isWifiDirectConnected = true
                 showConnectedState()
                 updateConnectionTypeSignature()

@@ -44,8 +44,8 @@ class DuoVideosFragment : Fragment() {
 
     private fun setupRecyclerView() {
         videoAdapter = VideoAdapter { video ->
-            // TODO: Play video in Duo mode
-            Toast.makeText(requireContext(), "Video: ${video.title}", Toast.LENGTH_SHORT).show()
+            // TODO: Play video in Duo mode (video sync not yet implemented)
+            Toast.makeText(requireContext(), "Video playback sync coming soon: ${video.title}", Toast.LENGTH_SHORT).show()
         }
 
         binding.rvVideos.apply {
@@ -58,7 +58,7 @@ class DuoVideosFragment : Fragment() {
     private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.filteredVideos.collectLatest { videos ->
-                android.util.Log.d("DuoVideosFragment", "Received ${videos.size} videos: ${videos.map { it.title }}")
+                android.util.Log.d("DuoVideosFragment", "Received ${videos.size} videos")
                 videoAdapter.submitList(videos)
                 binding.emptyState.visibility = if (videos.isEmpty()) View.VISIBLE else View.GONE
                 binding.rvVideos.visibility = if (videos.isEmpty()) View.GONE else View.VISIBLE

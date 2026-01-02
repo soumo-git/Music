@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.music.R
 import com.android.music.databinding.FragmentDuoSongsBinding
+import com.android.music.duo.chat.ui.DuoChatBottomSheet
 import com.android.music.duo.data.model.DuoSortOption
 import com.android.music.duo.ui.viewmodel.DuoViewModel
 import com.android.music.ui.adapter.SongAdapter
@@ -70,6 +71,15 @@ class DuoSongsFragment : Fragment() {
         binding.btnResync.setOnClickListener {
             viewModel.resyncLibrary()
         }
+        
+        binding.btnChat.setOnClickListener {
+            openChatSheet()
+        }
+    }
+    
+    private fun openChatSheet() {
+        DuoChatBottomSheet.newInstance()
+            .show(childFragmentManager, DuoChatBottomSheet.TAG)
     }
 
     private fun showSortMenu(view: View) {
@@ -104,6 +114,13 @@ class DuoSongsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.currentSong.collectLatest { song ->
                 songAdapter.setCurrentPlayingSong(song?.id)
+            }
+        }
+        
+        // Observe unread messages for badge
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.hasUnreadMessages.collectLatest { hasUnread ->
+                binding.chatBadge.visibility = if (hasUnread) View.VISIBLE else View.GONE
             }
         }
     }

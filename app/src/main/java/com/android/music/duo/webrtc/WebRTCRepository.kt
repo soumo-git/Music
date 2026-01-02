@@ -4,8 +4,10 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import com.android.music.data.model.Song
+import com.android.music.duo.data.model.ChatMessagePayload
 import com.android.music.duo.data.model.DuoCommand
 import com.android.music.duo.data.model.DuoMessage
+import com.android.music.duo.data.model.MessageAckPayload
 import com.android.music.duo.data.model.MessageType
 import com.android.music.duo.data.model.PlayPayload
 import com.android.music.duo.data.model.RepeatMode
@@ -15,6 +17,7 @@ import com.android.music.duo.data.model.ShufflePayload
 import com.android.music.duo.data.model.SongHash
 import com.android.music.duo.data.model.SyncLibraryPayload
 import com.android.music.duo.data.model.SyncResponsePayload
+import com.android.music.duo.data.model.VoiceMessagePayload
 import com.android.music.duo.webrtc.model.PresenceStatus
 import com.android.music.duo.webrtc.model.WebRTCConnectionState
 import com.google.gson.Gson
@@ -79,6 +82,25 @@ class WebRTCRepository(private val context: Context) {
     // Incoming commands from partner
     private val _incomingCommand = MutableSharedFlow<DuoCommand>()
     val incomingCommand: SharedFlow<DuoCommand> = _incomingCommand.asSharedFlow()
+    
+    // Chat message handling
+    private val _incomingChatMessage = MutableSharedFlow<ChatMessagePayload>()
+    val incomingChatMessage: SharedFlow<ChatMessagePayload> = _incomingChatMessage.asSharedFlow()
+    
+    private val _incomingVoiceMessage = MutableSharedFlow<VoiceMessagePayload>()
+    val incomingVoiceMessage: SharedFlow<VoiceMessagePayload> = _incomingVoiceMessage.asSharedFlow()
+    
+    private val _messageDelivered = MutableSharedFlow<String>()
+    val messageDelivered: SharedFlow<String> = _messageDelivered.asSharedFlow()
+    
+    private val _messageRead = MutableSharedFlow<String>()
+    val messageRead: SharedFlow<String> = _messageRead.asSharedFlow()
+    
+    private val _isPartnerTyping = MutableStateFlow(false)
+    val isPartnerTyping: StateFlow<Boolean> = _isPartnerTyping.asStateFlow()
+    
+    // Connection quality (0-100)
+    val connectionQuality: StateFlow<Int> = webRTCManager.connectionQuality
 
     // Events
     private val _events = MutableSharedFlow<WebRTCEvent>()
@@ -424,6 +446,34 @@ class WebRTCRepository(private val context: Context) {
                     _incomingCommand.emit(DuoCommand.RequestDisconnect)
                     disconnect()
                 }
+                // Chat messages
+                MessageType.CHAT_MESSAGE -> {
+                    val payload = gson.fromJson(message.payload, ChatMessagePayload::class.java)
+                    _incomingChatMessage.emit(payload)
+                    _isPartnerTyping.value = false
+                }
+                MessageType.TYPING_START -> {
+                    _isPartnerTyping.value = true
+                }
+                MessageType.TYPING_STOP -> {
+                    _isPartnerTyping.value = false
+                }
+                MessageType.MESSAGE_DELIVERED -> {
+                    val payload = gson.fromJson(message.payload, MessageAckPayload::class.java)
+                    Log.d(TAG, "Received MESSAGE_DELIVERED for: ${payload.messageId}")
+                    _messageDelivered.emit(payload.messageId)
+                }
+                MessageType.MESSAGE_READ -> {
+                    val payload = gson.fromJson(message.payload, MessageAckPayload::class.java)
+                    Log.d(TAG, "Received MESSAGE_READ for: ${payload.messageId}")
+                    _messageRead.emit(payload.messageId)
+                }
+                MessageType.VOICE_MESSAGE -> {
+                    val payload = gson.fromJson(message.payload, VoiceMessagePayload::class.java)
+                    Log.d(TAG, "Received VOICE_MESSAGE from: ${payload.senderName}")
+                    _incomingVoiceMessage.emit(payload)
+                    _isPartnerTyping.value = false
+                }
                 else -> Log.w(TAG, "Unhandled message type: ${message.type}")
             }
         } catch (e: Exception) {
@@ -609,6 +659,26 @@ class WebRTCRepository(private val context: Context) {
 
     fun sendRepeat(mode: RepeatMode): Boolean {
         val message = DuoMessage.createRepeat(mode)
+        return webRTCManager.sendMessage(gson.toJson(message))
+    }
+    
+    // Chat methods
+    
+    fun sendChatMessage(message: DuoMessage): Boolean {
+        return webRTCManager.sendMessage(gson.toJson(message))
+    }
+    
+    fun sendMessage(message: DuoMessage): Boolean {
+        return webRTCManager.sendMessage(gson.toJson(message))
+    }
+    
+    fun sendTypingStart(): Boolean {
+        val message = DuoMessage.createTypingStart()
+        return webRTCManager.sendMessage(gson.toJson(message))
+    }
+    
+    fun sendTypingStop(): Boolean {
+        val message = DuoMessage.createTypingStop()
         return webRTCManager.sendMessage(gson.toJson(message))
     }
 

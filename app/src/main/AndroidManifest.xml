@@ -29,6 +29,12 @@
     <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES"
         android:usesPermissionFlags="neverForLocation"
         android:minSdkVersion="33"/>
+    
+    <!-- Vibration for notifications -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    
+    <!-- Audio recording for voice messages -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
     <application
         android:allowBackup="true"
@@ -61,6 +67,13 @@
         <!-- Songs List Activity -->
         <activity
             android:name=".ui.activity.SongsListActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Music"
+            android:parentActivityName=".ui.activity.MainActivity"/>
+
+        <!-- Duo Songs List Activity -->
+        <activity
+            android:name=".duo.ui.activity.DuoSongsListActivity"
             android:exported="false"
             android:theme="@style/Theme.Music"
             android:parentActivityName=".ui.activity.MainActivity"/>
