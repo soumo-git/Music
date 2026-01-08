@@ -2,12 +2,15 @@ package com.android.music.duo.data.repository
 
 import android.content.Context
 import android.net.wifi.p2p.WifiP2pInfo
+import android.util.Base64
 import android.util.Log
 import com.android.music.data.model.Song
 import com.android.music.duo.data.model.*
 import com.android.music.duo.service.ConnectionStatus
 import com.android.music.duo.service.DuoSocketManager
 import com.android.music.duo.service.WifiDirectManager
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

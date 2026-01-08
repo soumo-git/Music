@@ -43,13 +43,15 @@ class DuoAlbumsFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        albumAdapter = AlbumAdapter { album ->
-            // Get songs from this album from common songs and open songs list
-            val albumSongs = viewModel.getSongsForAlbum(album.title, album.artist)
-            if (albumSongs.isNotEmpty()) {
-                DuoSongsListActivity.start(requireContext(), album.title, albumSongs)
+        albumAdapter = AlbumAdapter(
+            onAlbumClick = { album ->
+                // Get songs from this album from common songs and open songs list
+                val albumSongs = viewModel.getSongsForAlbum(album.title, album.artist)
+                if (albumSongs.isNotEmpty()) {
+                    DuoSongsListActivity.start(requireContext(), album.title, albumSongs)
+                }
             }
-        }
+        )
 
         binding.rvAlbums.apply {
             layoutManager = GridLayoutManager(requireContext(), 2)

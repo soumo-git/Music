@@ -57,7 +57,7 @@
     <dimen name="corner_radius_round">50dp</dimen>
     
     <!-- Divider -->
-    <dimen name="divider_height">0.5dp</dimen>
+    <dimen name="divider_height">1dp</dimen>
     
     <!-- Shuffle Button -->
     <dimen name="shuffle_button_height">36dp</dimen>

@@ -20,6 +20,7 @@ import android.support.v4.media.session.PlaybackStateCompat
 import androidx.core.app.NotificationCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.android.music.R
+import com.android.music.data.PlayCountManager
 import com.android.music.data.model.Song
 import com.android.music.equalizer.manager.EqualizerManager
 import com.android.music.ui.activity.MainActivity
@@ -34,11 +35,17 @@ class MusicService : Service() {
     
     // Equalizer manager for automatic settings application
     private lateinit var equalizerManager: EqualizerManager
+    
+    // Play count manager
+    private lateinit var playCountManager: PlayCountManager
 
     // Playlist management within service for lock screen controls
     private var playlist: List<Song> = emptyList()
     private var currentIndex: Int = -1
     private var isRepeatOne: Boolean = false
+    
+    // Queue for "Add to Queue" functionality
+    private val queue: MutableList<Song> = mutableListOf()
 
     private val NOTIFICATION_ID = 1
     private val CHANNEL_ID = "music_player_channel"
@@ -53,6 +60,9 @@ class MusicService : Service() {
         
         // Initialize equalizer manager
         equalizerManager = EqualizerManager.getInstance(this)
+        
+        // Initialize play count manager
+        playCountManager = PlayCountManager.getInstance(this)
     }
 
     private fun setupMediaSession() {
@@ -124,8 +134,45 @@ class MusicService : Service() {
                 val position = intent.getIntExtra(EXTRA_POSITION, 0)
                 seekTo(position)
             }
+            ACTION_ADD_TO_QUEUE -> {
+                val song = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(EXTRA_SONG, Song::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(EXTRA_SONG)
+                }
+                song?.let { addToQueue(it) }
+            }
         }
         return START_STICKY
+    }
+    
+    /**
+     * Add a song to the queue
+     */
+    fun addToQueue(song: Song) {
+        queue.add(song)
+        broadcastQueueUpdate()
+    }
+    
+    /**
+     * Get current queue
+     */
+    fun getQueue(): List<Song> = queue.toList()
+    
+    /**
+     * Clear the queue
+     */
+    fun clearQueue() {
+        queue.clear()
+        broadcastQueueUpdate()
+    }
+    
+    private fun broadcastQueueUpdate() {
+        val intent = Intent(BROADCAST_QUEUE_UPDATE).apply {
+            putExtra(EXTRA_QUEUE_SIZE, queue.size)
+        }
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
 
 
@@ -136,6 +183,9 @@ class MusicService : Service() {
             playlist = listOf(song)
             currentIndex = 0
         }
+        
+        // Increment play count
+        playCountManager.incrementPlayCount(song.id)
         
         mediaPlayer?.release()
         mediaPlayer = MediaPlayer().apply {
@@ -175,6 +225,14 @@ class MusicService : Service() {
     }
 
     private fun playNextInternal() {
+        // First check if there are songs in the queue
+        if (queue.isNotEmpty()) {
+            val nextSong = queue.removeAt(0)
+            broadcastQueueUpdate()
+            playSong(nextSong)
+            return
+        }
+        
         if (playlist.isNotEmpty() && currentIndex < playlist.size - 1) {
             currentIndex++
             val nextSong = playlist[currentIndex]
@@ -486,12 +544,15 @@ class MusicService : Service() {
         const val ACTION_TOGGLE_REPEAT = "com.android.music.ACTION_TOGGLE_REPEAT"
         const val ACTION_STOP = "com.android.music.ACTION_STOP"
         const val ACTION_SEEK = "com.android.music.ACTION_SEEK"
+        const val ACTION_ADD_TO_QUEUE = "com.android.music.ACTION_ADD_TO_QUEUE"
         const val EXTRA_SONG = "extra_song"
         const val EXTRA_PLAYLIST = "extra_playlist"
+        const val EXTRA_SHUFFLE = "extra_shuffle"
         const val EXTRA_POSITION = "extra_position"
         const val EXTRA_DURATION = "extra_duration"
         const val EXTRA_IS_PLAYING = "extra_is_playing"
         const val EXTRA_IS_REPEAT_ONE = "extra_is_repeat_one"
+        const val EXTRA_QUEUE_SIZE = "extra_queue_size"
         const val BROADCAST_PROGRESS = "com.android.music.BROADCAST_PROGRESS"
         const val BROADCAST_PLAYBACK_STATE = "com.android.music.BROADCAST_PLAYBACK_STATE"
         const val BROADCAST_NEXT = "com.android.music.BROADCAST_NEXT"
@@ -502,5 +563,6 @@ class MusicService : Service() {
         const val BROADCAST_RESUME = "com.android.music.BROADCAST_RESUME"
         const val BROADCAST_SEEK = "com.android.music.BROADCAST_SEEK"
         const val BROADCAST_SONG_CHANGE = "com.android.music.BROADCAST_SONG_CHANGE"
+        const val BROADCAST_QUEUE_UPDATE = "com.android.music.BROADCAST_QUEUE_UPDATE"
     }
 }

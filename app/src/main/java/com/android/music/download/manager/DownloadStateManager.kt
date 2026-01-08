@@ -27,7 +27,12 @@ object DownloadStateManager {
     data class DownloadInfo(
         val state: DownloadState = DownloadState.IDLE,
         val progress: Int = 0,
-        val formatId: String = "best"
+        val formatId: String = "best",
+        // Playlist progress
+        val isPlaylist: Boolean = false,
+        val totalItems: Int = 0,
+        val completedItems: Int = 0,
+        val currentItemTitle: String? = null
     )
     
     // Map of video ID to download state
@@ -39,7 +44,33 @@ object DownloadStateManager {
      */
     fun setState(videoId: String, state: DownloadState, progress: Int = 0, formatId: String = "best") {
         val current = _downloadStates.value.toMutableMap()
-        current[videoId] = DownloadInfo(state, progress, formatId)
+        val existing = current[videoId] ?: DownloadInfo()
+        current[videoId] = existing.copy(state = state, progress = progress, formatId = formatId)
+        _downloadStates.value = current
+    }
+    
+    /**
+     * Set state with playlist progress
+     */
+    fun setPlaylistState(
+        videoId: String, 
+        state: DownloadState, 
+        progress: Int = 0, 
+        formatId: String = "best",
+        totalItems: Int = 0,
+        completedItems: Int = 0,
+        currentItemTitle: String? = null
+    ) {
+        val current = _downloadStates.value.toMutableMap()
+        current[videoId] = DownloadInfo(
+            state = state,
+            progress = progress,
+            formatId = formatId,
+            isPlaylist = true,
+            totalItems = totalItems,
+            completedItems = completedItems,
+            currentItemTitle = currentItemTitle
+        )
         _downloadStates.value = current
     }
     

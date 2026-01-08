@@ -92,6 +92,12 @@ class DownloadsFragment : Fragment() {
     }
 
     private fun setupUI() {
+        // Setup folder header back button
+        binding.folderHeader.visibility = View.GONE
+        binding.btnBack.setOnClickListener {
+            handleBackPress()
+        }
+        
         // Setup tabs: Extracts, Downloading, Downloaded
         binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Extracts"))
         binding.tabLayout.addTab(binding.tabLayout.newTab().setText("Downloading"))
@@ -189,6 +195,13 @@ class DownloadsFragment : Fragment() {
         }
     }
     
+    private fun showFolderContents(items: List<com.android.music.download.data.model.DownloadItem>) {
+        binding.extractedContentContainer.visibility = View.GONE
+        binding.emptyState.visibility = View.GONE
+        binding.rvDownloads.visibility = View.VISIBLE
+        downloadsAdapter.submitList(items)
+    }
+    
     private fun checkAndRequestStoragePermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (!Environment.isExternalStorageManager()) {
@@ -217,12 +230,96 @@ class DownloadsFragment : Fragment() {
             onPauseClick = { viewModel.pauseDownload(it.id) },
             onResumeClick = { viewModel.resumeDownload(it.id) },
             onCancelClick = { viewModel.cancelDownload(it.id) },
-            onDeleteClick = { viewModel.deleteDownload(it.id) }
+            onDeleteClick = { item -> showDeleteConfirmation(item) },
+            onFolderClick = { folder ->
+                // Navigate into the folder
+                viewModel.openFolder(folder.filePath ?: folder.url)
+                updateFolderHeader(folder.title)
+            },
+            onItemClick = { item ->
+                // Play the file if it's a media file
+                if (!item.isFolder && item.filePath != null) {
+                    playMediaFile(item.filePath)
+                }
+            }
         )
         
         binding.rvDownloads.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = downloadsAdapter
+        }
+    }
+    
+    private fun showDeleteConfirmation(item: com.android.music.download.data.model.DownloadItem) {
+        val itemType = if (item.isFolder) "folder and all its contents" else "file"
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Delete ${if (item.isFolder) "Folder" else "File"}")
+            .setMessage("Are you sure you want to delete \"${item.title}\"?\n\nThis will permanently delete the $itemType from your device.")
+            .setPositiveButton("Delete") { _, _ ->
+                viewModel.deleteDownload(item.id)
+                Toast.makeText(requireContext(), "Deleted successfully", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun playMediaFile(filePath: String) {
+        val file = java.io.File(filePath)
+        if (!file.exists()) {
+            Toast.makeText(requireContext(), "File not found", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val extension = file.extension.lowercase()
+        when {
+            extension in listOf("mp4", "mkv", "avi", "webm", "mov") -> {
+                // Play video
+                val intent = Intent(Intent.ACTION_VIEW)
+                val uri = androidx.core.content.FileProvider.getUriForFile(
+                    requireContext(),
+                    "${requireContext().packageName}.provider",
+                    file
+                )
+                intent.setDataAndType(uri, "video/*")
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                startActivity(intent)
+            }
+            extension in listOf("mp3", "m4a", "aac", "flac", "wav", "ogg") -> {
+                // Play audio - could integrate with MusicService
+                val intent = Intent(Intent.ACTION_VIEW)
+                val uri = androidx.core.content.FileProvider.getUriForFile(
+                    requireContext(),
+                    "${requireContext().packageName}.provider",
+                    file
+                )
+                intent.setDataAndType(uri, "audio/*")
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                startActivity(intent)
+            }
+            else -> {
+                Toast.makeText(requireContext(), "Unsupported file type", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    
+    private fun updateFolderHeader(folderName: String) {
+        binding.folderHeader.visibility = View.VISIBLE
+        binding.tvFolderName.text = folderName
+    }
+    
+    private fun hideFolderHeader() {
+        binding.folderHeader.visibility = View.GONE
+    }
+    
+    /**
+     * Handle back press - returns true if handled (was in subfolder)
+     */
+    fun handleBackPress(): Boolean {
+        return if (viewModel.navigateBack()) {
+            hideFolderHeader()
+            true
+        } else {
+            false
         }
     }
 
@@ -258,10 +355,22 @@ class DownloadsFragment : Fragment() {
         }
 
         viewModel.downloads.observe(viewLifecycleOwner) { downloads ->
-            when (binding.tabLayout.selectedTabPosition) {
-                0 -> showExtracts()
-                1 -> showDownloadingItems()
-                2 -> showDownloadedItems()
+            // If in subfolder, always show the folder contents
+            if (viewModel.isInSubfolder()) {
+                showFolderContents(downloads)
+            } else {
+                when (binding.tabLayout.selectedTabPosition) {
+                    0 -> showExtracts()
+                    1 -> showDownloadingItems()
+                    2 -> showDownloadedItems()
+                }
+            }
+        }
+        
+        // Observe current folder for header updates
+        viewModel.currentFolder.observe(viewLifecycleOwner) { folderPath ->
+            if (folderPath == null) {
+                hideFolderHeader()
             }
         }
 
@@ -299,6 +408,14 @@ class DownloadsFragment : Fragment() {
             }
         }
         
+        // Observe emoji error event
+        viewModel.emojiError.observe(viewLifecycleOwner) { playlistName ->
+            playlistName?.let {
+                showEmojiErrorDialog(it)
+                viewModel.clearEmojiError()
+            }
+        }
+        
         // Observe preview ready event
         viewModel.previewReady.observe(viewLifecycleOwner) { previewData ->
             previewData?.let {
@@ -315,6 +432,15 @@ class DownloadsFragment : Fragment() {
                 )
             }
         }
+    }
+    
+    private fun showEmojiErrorDialog(playlistName: String) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Emoji in Playlist Name")
+            .setMessage("The playlist \"$playlistName\" contains emoji characters which can cause issues with folder naming.\n\nPlease rename the playlist on YouTube to remove emojis, then try downloading again.")
+            .setPositiveButton("OK", null)
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .show()
     }
 
     private fun showExtractedContent(content: ExtractedContent) {

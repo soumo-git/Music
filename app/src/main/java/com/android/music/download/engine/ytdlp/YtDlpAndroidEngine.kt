@@ -126,10 +126,18 @@ class YtDlpAndroidEngine(
                         if (playlistItems.isNotEmpty()) {
                             Log.d(TAG, "Extracted playlist with ${playlistItems.size} items")
                             
+                            // Get the actual playlist title
+                            val playlistTitle = extractPlaylistTitle(response.out) 
+                                ?: getPlaylistTitle(url)
+                                ?: "Playlist"
+                            
+                            // Sanitize for display (keep emojis for UI, sanitization happens at download time)
+                            val displayTitle = "$playlistTitle (${playlistItems.size} items)"
+                            
                             val platform = SupportedPlatform.fromUrl(url)
                             val content = ExtractedContent(
                                 url = url,
-                                title = "Playlist (${playlistItems.size} items)",
+                                title = displayTitle,
                                 thumbnailUrl = playlistItems.firstOrNull()?.thumbnailUrl,
                                 duration = null,
                                 author = null,
@@ -310,6 +318,30 @@ class YtDlpAndroidEngine(
         val downloadId = UUID.randomUUID().toString()
         val processId = "download_$downloadId"
         
+        // Check if it's a playlist URL
+        val isPlaylistUrl = url.contains("playlist") || url.contains("list=")
+        
+        // Get playlist info first if it's a playlist
+        var totalPlaylistItems = 0
+        var completedPlaylistItems = 0
+        var currentItemTitle: String? = null
+        
+        if (isPlaylistUrl) {
+            // Try to get playlist item count
+            try {
+                val infoRequest = YoutubeDLRequest(url)
+                infoRequest.addOption("--flat-playlist")
+                infoRequest.addOption("--dump-json")
+                val infoResponse = YoutubeDL.getInstance().execute(infoRequest)
+                if (infoResponse.exitCode == 0) {
+                    totalPlaylistItems = infoResponse.out.split("\n").count { it.trim().startsWith("{") }
+                    Log.d(TAG, "Playlist has $totalPlaylistItems items")
+                }
+            } catch (e: Exception) {
+                Log.w(TAG, "Could not get playlist info: ${e.message}")
+            }
+        }
+        
         trySend(DownloadProgress(
             downloadId = downloadId,
             progress = 0,
@@ -317,7 +349,11 @@ class YtDlpAndroidEngine(
             totalBytes = format.fileSize ?: 0,
             speed = null,
             eta = null,
-            status = DownloadProgressStatus.STARTING
+            status = DownloadProgressStatus.STARTING,
+            isPlaylist = isPlaylistUrl,
+            totalItems = totalPlaylistItems,
+            completedItems = 0,
+            currentItemTitle = null
         ))
         
         try {
@@ -329,16 +365,62 @@ class YtDlpAndroidEngine(
             
             val request = YoutubeDLRequest(url)
             
-            // Output path with playlist support - add number for each item
-            val outputTemplate = if (url.contains("playlist") || url.contains("list=")) {
-                "$outputPath/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s"
+            // Determine if outputPath is a directory or file
+            val outputFile = File(outputPath)
+            val isDirectory = outputFile.isDirectory || !outputPath.contains(".")
+            
+            // Output path configuration
+            val outputTemplate: String
+            val baseDirectory: String
+            
+            if (isPlaylistUrl && isDirectory) {
+                // For playlists: get the playlist title and create folder
+                val playlistTitle = getPlaylistTitle(url)
+                val sanitizedTitle = sanitizeForFilename(playlistTitle ?: "Playlist")
+                val playlistFolder = File(outputPath, sanitizedTitle)
+                
+                // Create the folder if it doesn't exist
+                if (!playlistFolder.exists()) {
+                    playlistFolder.mkdirs()
+                }
+                
+                baseDirectory = outputPath
+                // No playlist index - just use title
+                outputTemplate = "${playlistFolder.absolutePath}/%(title)s.%(ext)s"
+                Log.d(TAG, "Playlist folder: ${playlistFolder.absolutePath}")
+            } else if (isDirectory) {
+                // Single video but outputPath is a directory
+                baseDirectory = outputPath
+                outputTemplate = "$outputPath/%(title)s.%(ext)s"
             } else {
-                outputPath
+                // Single video with full file path
+                baseDirectory = outputFile.parent ?: outputPath
+                outputTemplate = outputPath
             }
             request.addOption("-o", outputTemplate)
             
+            // Restrict filenames to ASCII characters (avoids unicode issues in filenames)
+            request.addOption("--restrict-filenames")
+            
             // Enable playlist downloading
             request.addOption("--yes-playlist")
+            
+            // Print progress to stdout for parsing
+            request.addOption("--newline")
+            request.addOption("--progress")
+            
+            // Universal download archive - skip already downloaded files across all downloads
+            val archiveFile = File(baseDirectory, ".download_archive.txt")
+            request.addOption("--download-archive", archiveFile.absolutePath)
+            
+            // Continue partial downloads
+            request.addOption("--continue")
+            
+            // Retry on errors
+            request.addOption("--retries", "5")
+            
+            // Ignore errors (continue with other items if one fails)
+            request.addOption("--ignore-errors")
             
             // Format selection - always use best quality
             when {
@@ -364,23 +446,73 @@ class YtDlpAndroidEngine(
             request.addOption("--embed-metadata")
             request.addOption("--embed-thumbnail")
             
+            // Don't preserve original file modification time
+            request.addOption("--no-mtime")
+            
             Log.d(TAG, "Starting download: $url -> $outputTemplate with format: ${format.formatId}")
             
             val response = YoutubeDL.getInstance().execute(
                 request,
                 processId
-            ) { progress, etaInSeconds, _ ->
-                // This callback is called on progress updates - emit immediately
-                Log.d(TAG, "Progress: $progress%, ETA: ${etaInSeconds}s")
+            ) { progress, etaInSeconds, line ->
+                // Parse the output line for playlist progress
+                val lineStr = line ?: ""
+                
+                // Check for "[download] Downloading video X of Y"
+                val playlistProgressPattern = "\\[download\\]\\s+Downloading\\s+(?:video|item)\\s+(\\d+)\\s+of\\s+(\\d+)".toRegex(RegexOption.IGNORE_CASE)
+                val playlistMatch = playlistProgressPattern.find(lineStr)
+                if (playlistMatch != null) {
+                    val currentItem = playlistMatch.groupValues[1].toIntOrNull() ?: 0
+                    val total = playlistMatch.groupValues[2].toIntOrNull() ?: totalPlaylistItems
+                    completedPlaylistItems = currentItem - 1 // Current is being downloaded, so completed = current - 1
+                    if (total > 0) totalPlaylistItems = total
+                    Log.d(TAG, "Playlist progress: $currentItem of $totalPlaylistItems")
+                }
+                
+                // Check for "[download] Destination:" to get current item title
+                val destinationPattern = "\\[download\\]\\s+Destination:\\s+.*/([^/]+)\\.\\w+$".toRegex()
+                val destMatch = destinationPattern.find(lineStr)
+                if (destMatch != null) {
+                    currentItemTitle = destMatch.groupValues[1].replace("_", " ")
+                    Log.d(TAG, "Current item: $currentItemTitle")
+                }
+                
+                // Check for "has already been downloaded" to count completed items
+                if (lineStr.contains("has already been downloaded") || lineStr.contains("has already been recorded")) {
+                    completedPlaylistItems++
+                    Log.d(TAG, "Item already downloaded, completed: $completedPlaylistItems")
+                }
+                
+                // Check for download completion of an item
+                if (lineStr.contains("[download] 100%") || lineStr.contains("100.0%")) {
+                    if (isPlaylistUrl && totalPlaylistItems > 0) {
+                        completedPlaylistItems++
+                        Log.d(TAG, "Item completed, total completed: $completedPlaylistItems")
+                    }
+                }
+                
+                // Calculate overall progress for playlists
+                val overallProgress = if (isPlaylistUrl && totalPlaylistItems > 0) {
+                    val itemProgress = progress.toInt()
+                    val baseProgress = (completedPlaylistItems * 100) / totalPlaylistItems
+                    val currentItemContribution = (itemProgress * 100) / (totalPlaylistItems * 100)
+                    minOf(baseProgress + currentItemContribution, 99)
+                } else {
+                    progress.toInt()
+                }
                 
                 trySend(DownloadProgress(
                     downloadId = downloadId,
-                    progress = progress.toInt(),
+                    progress = overallProgress,
                     downloadedBytes = 0,
                     totalBytes = format.fileSize ?: 0,
                     speed = null,
                     eta = if (etaInSeconds > 0) "${etaInSeconds}s" else null,
-                    status = DownloadProgressStatus.DOWNLOADING
+                    status = DownloadProgressStatus.DOWNLOADING,
+                    isPlaylist = isPlaylistUrl,
+                    totalItems = totalPlaylistItems,
+                    completedItems = completedPlaylistItems,
+                    currentItemTitle = currentItemTitle
                 ))
             }
             
@@ -388,15 +520,25 @@ class YtDlpAndroidEngine(
             
             if (response.exitCode == 0) {
                 // Trigger MediaStore scan so files appear in gallery
-                val outputDir = File(outputPath).parentFile
-                if (outputDir?.exists() == true) {
-                    MediaScannerConnection.scanFile(
-                        context,
-                        arrayOf(outputDir.absolutePath),
-                        arrayOf("video/mp4", "audio/mpeg"),
-                        null
-                    )
-                    Log.d(TAG, "Triggered MediaStore scan for: ${outputDir.absolutePath}")
+                val scanDir = File(baseDirectory)
+                if (scanDir.exists()) {
+                    // Scan the entire download directory and subdirectories
+                    val filesToScan = mutableListOf<String>()
+                    scanDir.walkTopDown().forEach { file ->
+                        if (file.isFile && !file.name.startsWith(".")) {
+                            filesToScan.add(file.absolutePath)
+                        }
+                    }
+                    
+                    if (filesToScan.isNotEmpty()) {
+                        MediaScannerConnection.scanFile(
+                            context,
+                            filesToScan.toTypedArray(),
+                            arrayOf("video/mp4", "audio/mpeg", "audio/mp3"),
+                            null
+                        )
+                        Log.d(TAG, "Triggered MediaStore scan for ${filesToScan.size} files")
+                    }
                 }
                 
                 trySend(DownloadProgress(
@@ -406,7 +548,11 @@ class YtDlpAndroidEngine(
                     totalBytes = format.fileSize ?: 0,
                     speed = null,
                     eta = null,
-                    status = DownloadProgressStatus.COMPLETED
+                    status = DownloadProgressStatus.COMPLETED,
+                    isPlaylist = isPlaylistUrl,
+                    totalItems = totalPlaylistItems,
+                    completedItems = totalPlaylistItems,
+                    currentItemTitle = null
                 ))
                 Log.d(TAG, "Download completed: $outputPath")
             } else {
@@ -417,7 +563,11 @@ class YtDlpAndroidEngine(
                     totalBytes = 0,
                     speed = null,
                     eta = response.err,
-                    status = DownloadProgressStatus.FAILED
+                    status = DownloadProgressStatus.FAILED,
+                    isPlaylist = isPlaylistUrl,
+                    totalItems = totalPlaylistItems,
+                    completedItems = completedPlaylistItems,
+                    currentItemTitle = null
                 ))
                 Log.e(TAG, "Download failed: ${response.err}")
             }
@@ -431,7 +581,11 @@ class YtDlpAndroidEngine(
                 totalBytes = 0,
                 speed = null,
                 eta = e.message,
-                status = DownloadProgressStatus.FAILED
+                status = DownloadProgressStatus.FAILED,
+                isPlaylist = isPlaylistUrl,
+                totalItems = totalPlaylistItems,
+                completedItems = completedPlaylistItems,
+                currentItemTitle = null
             ))
         }
         
@@ -659,6 +813,87 @@ class YtDlpAndroidEngine(
     private fun extractJsonValue(json: String, key: String): String? {
         val pattern = "\"$key\"\\s*:\\s*\"([^\"]+)\"".toRegex()
         return pattern.find(json)?.groupValues?.get(1)
+    }
+    
+    /**
+     * Extract playlist title from JSON output
+     */
+    private fun extractPlaylistTitle(jsonOutput: String): String? {
+        try {
+            // Look for playlist_title in the JSON
+            val lines = jsonOutput.split("\n").filter { it.trim().startsWith("{") }
+            for (line in lines) {
+                val playlistTitle = extractJsonValue(line, "playlist_title")
+                if (!playlistTitle.isNullOrBlank() && playlistTitle != "NA") {
+                    return playlistTitle
+                }
+                // Also try "playlist" field as fallback
+                val playlist = extractJsonValue(line, "playlist")
+                if (!playlist.isNullOrBlank() && playlist != "NA" && !playlist.contains("_items_")) {
+                    return playlist
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to extract playlist title: ${e.message}")
+        }
+        return null
+    }
+    
+    /**
+     * Get playlist title from URL using yt-dlp
+     */
+    private suspend fun getPlaylistTitle(url: String): String? = withContext(Dispatchers.IO) {
+        try {
+            val request = YoutubeDLRequest(url)
+            request.addOption("--flat-playlist")
+            request.addOption("--dump-single-json")
+            request.addOption("--no-warnings")
+            
+            val response = YoutubeDL.getInstance().execute(request)
+            
+            if (response.exitCode == 0 && response.out.isNotEmpty()) {
+                // Try to extract playlist title from JSON
+                val json = response.out
+                val title = extractJsonValue(json, "title") 
+                    ?: extractJsonValue(json, "playlist_title")
+                
+                if (!title.isNullOrBlank() && title != "NA") {
+                    Log.d(TAG, "Got playlist title: $title")
+                    return@withContext title
+                }
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to get playlist title: ${e.message}")
+        }
+        null
+    }
+    
+    /**
+     * Sanitize a string for use as a filename/folder name
+     * Removes or replaces invalid characters while preserving readability
+     */
+    private fun sanitizeForFilename(name: String): String {
+        // First, remove everything that's not ASCII letters, numbers, spaces, or basic punctuation
+        val asciiOnly = name.map { char ->
+            when {
+                char.code in 32..126 -> char // Printable ASCII
+                else -> ' ' // Replace non-ASCII with space
+            }
+        }.joinToString("")
+        
+        // Replace invalid filename characters with spaces
+        val sanitized = asciiOnly
+            .replace(Regex("[<>:\"/\\\\|?*]"), " ")
+            .replace(Regex("\\s+"), " ")  // Collapse multiple spaces
+            .trim()
+        
+        // If the result is empty or too short, use a default
+        return if (sanitized.length < 2) {
+            "Playlist"
+        } else {
+            // Limit length to 100 characters
+            sanitized.take(100)
+        }
     }
     
     private fun parseFormats(videoInfo: com.yausername.youtubedl_android.mapper.VideoInfo?): List<DownloadFormat> {

@@ -96,13 +96,61 @@
             android:textSize="12sp" />
     </LinearLayout>
 
+    <!-- Folder Header (shown when inside a folder) -->
+    <LinearLayout
+        android:id="@+id/folderHeader"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:background="@color/surfaceColor"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="4dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/engineWarningBanner"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible">
+
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/ripple_circle"
+            android:src="@drawable/ic_arrow_back"
+            android:contentDescription="Back"
+            android:padding="8dp"
+            app:tint="@color/textPrimary"/>
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/ic_folder"
+            app:tint="@color/colorAccent"
+            android:contentDescription="Folder" />
+
+        <TextView
+            android:id="@+id/tvFolderName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="16dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Folder Name"
+            android:textColor="@color/textPrimary"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
     <!-- Tabs -->
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tabLayout"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/engineWarningBanner"
+        app:layout_constraintTop_toBottomOf="@id/folderHeader"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:tabMode="fixed"
@@ -117,7 +165,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:barrierDirection="bottom"
-        app:constraint_referenced_ids="tabLayout" />
+        app:constraint_referenced_ids="tabLayout,folderHeader" />
 
     <!-- Content Area with pull-to-refresh -->
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -204,8 +252,9 @@
             <!-- Loading Indicator -->
             <ProgressBar
             android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            style="@style/ModernLoadingSpinner"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_gravity="center"
             android:visibility="gone"/>
 

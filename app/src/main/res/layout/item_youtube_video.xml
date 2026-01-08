@@ -122,11 +122,10 @@
             <!-- Indeterminate progress (extraction) -->
             <ProgressBar
                 android:id="@+id/progressExtracting"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:visibility="gone"
-                android:indeterminate="true"
-                style="?android:attr/progressBarStyleSmall"/>
+                style="@style/ModernLoadingSpinnerSmall"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:visibility="gone"/>
             
             <!-- Determinate progress (downloading) -->
             <ProgressBar

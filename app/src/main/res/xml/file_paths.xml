@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- External storage paths for sharing audio files -->
+    <external-path name="external_files" path="." />
+    <external-path name="music" path="Music/" />
+    <external-path name="download" path="Download/" />
+    <external-path name="downloads" path="Downloads/" />
+    
+    <!-- Root external storage -->
+    <root-path name="root" path="." />
+</paths>

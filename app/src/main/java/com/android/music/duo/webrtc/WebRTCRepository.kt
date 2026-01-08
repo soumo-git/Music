@@ -2,6 +2,7 @@ package com.android.music.duo.webrtc
 
 import android.content.Context
 import android.os.Build
+import android.util.Base64
 import android.util.Log
 import com.android.music.data.model.Song
 import com.android.music.duo.data.model.ChatMessagePayload
@@ -21,6 +22,7 @@ import com.android.music.duo.data.model.VoiceMessagePayload
 import com.android.music.duo.webrtc.model.PresenceStatus
 import com.android.music.duo.webrtc.model.WebRTCConnectionState
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

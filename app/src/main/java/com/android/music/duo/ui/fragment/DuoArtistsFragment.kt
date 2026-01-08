@@ -43,13 +43,15 @@ class DuoArtistsFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        artistAdapter = ArtistAdapter { artist ->
-            // Get songs by this artist from common songs and open songs list
-            val artistSongs = viewModel.getSongsForArtist(artist.name)
-            if (artistSongs.isNotEmpty()) {
-                DuoSongsListActivity.start(requireContext(), artist.name, artistSongs)
+        artistAdapter = ArtistAdapter(
+            onArtistClick = { artist ->
+                // Get songs by this artist from common songs and open songs list
+                val artistSongs = viewModel.getSongsForArtist(artist.name)
+                if (artistSongs.isNotEmpty()) {
+                    DuoSongsListActivity.start(requireContext(), artist.name, artistSongs)
+                }
             }
-        }
+        )
 
         binding.rvArtists.apply {
             layoutManager = LinearLayoutManager(requireContext())

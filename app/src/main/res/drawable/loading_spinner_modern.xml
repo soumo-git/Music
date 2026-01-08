@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <!-- Background ring (track) -->
+    <item>
+        <shape
+            android:innerRadiusRatio="3"
+            android:shape="ring"
+            android:thicknessRatio="14"
+            android:useLevel="false">
+            <solid android:color="#1A8B5CF6" />
+        </shape>
+    </item>
+    
+    <!-- Animated foreground ring -->
+    <item>
+        <rotate
+            android:fromDegrees="0"
+            android:pivotX="50%"
+            android:pivotY="50%"
+            android:toDegrees="360">
+            <shape
+                android:innerRadiusRatio="3"
+                android:shape="ring"
+                android:thicknessRatio="14"
+                android:useLevel="false">
+                <gradient
+                    android:centerColor="#8B5CF6"
+                    android:endColor="#00000000"
+                    android:startColor="#EC4899"
+                    android:type="sweep" />
+            </shape>
+        </rotate>
+    </item>
+    
+</layer-list>

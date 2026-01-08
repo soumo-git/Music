@@ -42,7 +42,7 @@
         android:layout_marginEnd="@dimen/spacing_sm"
         android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btnDownload"
+        app:layout_constraintEnd_toStartOf="@id/btnOptions"
         app:layout_constraintStart_toEndOf="@id/ivThumbnail"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -63,19 +63,16 @@
 
     </LinearLayout>
 
-    <!-- Options Button -->
+    <!-- Hidden Download Button (kept for compatibility but hidden) -->
     <ImageButton
         android:id="@+id/btnDownload"
-        android:layout_width="@dimen/icon_size_xl"
-        android:layout_height="@dimen/icon_size_xl"
-        android:background="@drawable/ripple_circle"
-        android:contentDescription="Download"
-        android:padding="@dimen/spacing_sm"
-        android:src="@drawable/ic_download"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/btnOptions"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
+    <!-- Options Button -->
     <ImageButton
         android:id="@+id/btnOptions"
         android:layout_width="@dimen/icon_size_xl"

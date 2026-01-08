@@ -80,6 +80,15 @@
         <item name="android:background">?attr/selectableItemBackground</item>
     </style>
 
+    <!-- Profile Menu Item Style -->
+    <style name="ProfileMenuItemStyle">
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+    </style>
+
     <!-- Song Title Style -->
     <style name="SongTitleStyle">
         <item name="android:textColor">@color/textPrimary</item>
@@ -132,6 +141,12 @@
         <item name="cornerSize">50%</item>
     </style>
 
+    <!-- Rounded Corner 8dp Style for ShapeableImageView -->
+    <style name="RoundedCorner8" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
     <!-- Video Player Theme - Fullscreen immersive -->
     <style name="Theme.Music.VideoPlayer" parent="Theme.Music">
         <item name="android:windowFullscreen">true</item>
@@ -145,5 +160,35 @@
     <style name="ToolbarTitleStyle" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
         <item name="android:textSize">18sp</item>
         <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- Modern Loading Spinner Style -->
+    <style name="ModernLoadingSpinner" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:indeterminateDrawable">@drawable/loading_spinner_modern</item>
+        <item name="android:indeterminateDuration">1000</item>
+        <item name="android:indeterminateOnly">true</item>
+    </style>
+    
+    <!-- Small Modern Loading Spinner Style -->
+    <style name="ModernLoadingSpinnerSmall" parent="Widget.AppCompat.ProgressBar">
+        <item name="android:indeterminateDrawable">@drawable/loading_spinner_small</item>
+        <item name="android:indeterminateDuration">800</item>
+        <item name="android:indeterminateOnly">true</item>
+    </style>
+
+    <!-- Duo ID Bottom Sheet Style -->
+    <style name="DuoIdBottomSheetStyle" parent="Theme.MaterialComponents.Light.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/DuoIdBottomSheetModalStyle</item>
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/backgroundColor</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.6</item>
+    </style>
+
+    <style name="DuoIdBottomSheetModalStyle" parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@android:color/transparent</item>
+        <item name="behavior_skipCollapsed">true</item>
     </style>
 </resources>

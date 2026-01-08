@@ -12,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -25,6 +26,7 @@ import com.android.music.databinding.FragmentSongsBinding
 import com.android.music.service.MusicService
 import com.android.music.ui.adapter.SongAdapter
 import com.android.music.ui.viewmodel.MusicViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class SongsFragment : Fragment() {
 
@@ -33,6 +35,8 @@ class SongsFragment : Fragment() {
 
     private val viewModel: MusicViewModel by activityViewModels()
     private lateinit var songAdapter: SongAdapter
+    
+    private var selectionBar: View? = null
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -58,6 +62,21 @@ class SongsFragment : Fragment() {
                     }
                     song?.let { songAdapter.setCurrentPlayingSong(it.id) }
                 }
+                MusicService.BROADCAST_QUEUE_UPDATE -> {
+                    val queueSize = intent.getIntExtra(MusicService.EXTRA_QUEUE_SIZE, 0)
+                    if (queueSize > 0) {
+                        Toast.makeText(requireContext(), "Added to queue ($queueSize in queue)", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+    
+    private val backPressedCallback = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            if (songAdapter.isInSelectionMode()) {
+                songAdapter.clearSelection()
+                hideSelectionBar()
             }
         }
     }
@@ -73,10 +92,12 @@ class SongsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.initializePlayCountManager(requireContext())
         setupRecyclerView()
         setupClickListeners()
         observeViewModel()
         registerReceivers()
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backPressedCallback)
     }
 
     private fun setupRecyclerView() {
@@ -85,14 +106,22 @@ class SongsFragment : Fragment() {
                 viewModel.setPlaylist(viewModel.songs.value ?: emptyList())
                 viewModel.playSong(song)
             },
-            onSongOptionClick = { song, option -> handleSongOption(song, option) }
+            onSongOptionClick = { song, option -> handleSongOption(song, option) },
+            onSelectionChanged = { selectedSongs ->
+                if (selectedSongs.isNotEmpty()) {
+                    showSelectionBar(selectedSongs.size)
+                    backPressedCallback.isEnabled = true
+                } else {
+                    hideSelectionBar()
+                    backPressedCallback.isEnabled = false
+                }
+            }
         )
 
         binding.rvSongs.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = songAdapter
             setHasFixedSize(true)
-            // Enable smooth scrolling for high refresh rate displays
             itemAnimator?.changeDuration = 150
             itemAnimator?.addDuration = 150
             itemAnimator?.removeDuration = 150
@@ -112,6 +141,32 @@ class SongsFragment : Fragment() {
         binding.btnAskPermissions.setOnClickListener {
             requestPermissions()
         }
+    }
+    
+    private fun showSelectionBar(count: Int) {
+        if (selectionBar == null) {
+            selectionBar = layoutInflater.inflate(R.layout.selection_bar, binding.root as ViewGroup, false)
+            (binding.root as ViewGroup).addView(selectionBar)
+        }
+        
+        selectionBar?.let { bar ->
+            bar.visibility = View.VISIBLE
+            bar.findViewById<android.widget.TextView>(R.id.tvSelectionCount)?.text = "$count selected"
+            bar.findViewById<android.widget.ImageButton>(R.id.btnShare)?.setOnClickListener {
+                val selectedSongs = songAdapter.getSelectedSongs()
+                viewModel.shareSongs(requireContext(), selectedSongs)
+                songAdapter.clearSelection()
+                hideSelectionBar()
+            }
+            bar.findViewById<android.widget.ImageButton>(R.id.btnClose)?.setOnClickListener {
+                songAdapter.clearSelection()
+                hideSelectionBar()
+            }
+        }
+    }
+    
+    private fun hideSelectionBar() {
+        selectionBar?.visibility = View.GONE
     }
 
     private fun requestPermissions() {
@@ -162,19 +217,27 @@ class SongsFragment : Fragment() {
 
     private fun handleSongOption(song: Song, option: SongAdapter.SongOption) {
         when (option) {
-            SongAdapter.SongOption.PLAY_LATER -> {
-                Toast.makeText(requireContext(), "Added to play later", Toast.LENGTH_SHORT).show()
-            }
             SongAdapter.SongOption.ADD_TO_QUEUE -> {
-                Toast.makeText(requireContext(), "Added to queue", Toast.LENGTH_SHORT).show()
+                viewModel.addToQueue(requireContext(), song)
             }
             SongAdapter.SongOption.DELETE -> {
-                Toast.makeText(requireContext(), "Delete: ${song.title}", Toast.LENGTH_SHORT).show()
+                showDeleteConfirmation(song)
             }
             SongAdapter.SongOption.SHARE -> {
                 viewModel.shareSong(requireContext(), song)
             }
         }
+    }
+    
+    private fun showDeleteConfirmation(song: Song) {
+        MaterialAlertDialogBuilder(requireContext(), R.style.DarkAlertDialog)
+            .setTitle(R.string.delete)
+            .setMessage(getString(R.string.delete_song_confirm, song.title))
+            .setPositiveButton(R.string.delete) { _, _ ->
+                viewModel.deleteSong(requireContext(), song)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun observeViewModel() {
@@ -187,11 +250,23 @@ class SongsFragment : Fragment() {
         viewModel.currentSong.observe(viewLifecycleOwner) { song ->
             songAdapter.setCurrentPlayingSong(song?.id)
         }
+        
+        viewModel.deleteResult.observe(viewLifecycleOwner) { result ->
+            result?.let {
+                if (it.success) {
+                    Toast.makeText(requireContext(), getString(R.string.song_deleted, it.songTitle), Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(requireContext(), getString(R.string.delete_failed), Toast.LENGTH_SHORT).show()
+                }
+                viewModel.clearDeleteResult()
+            }
+        }
     }
 
     private fun registerReceivers() {
         val filter = IntentFilter().apply {
             addAction(MusicService.BROADCAST_PLAYBACK_STATE)
+            addAction(MusicService.BROADCAST_QUEUE_UPDATE)
         }
         LocalBroadcastManager.getInstance(requireContext()).registerReceiver(playbackReceiver, filter)
     }
@@ -200,6 +275,7 @@ class SongsFragment : Fragment() {
         super.onDestroyView()
         LocalBroadcastManager.getInstance(requireContext()).unregisterReceiver(playbackReceiver)
         _binding = null
+        selectionBar = null
     }
 
     companion object {

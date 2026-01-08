@@ -21,11 +21,11 @@
     <!-- Loading indicator -->
     <ProgressBar
         android:id="@+id/progressLoading"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        style="@style/ModernLoadingSpinner"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:layout_gravity="center"
         android:visibility="gone"
-        android:indeterminateTint="@color/colorAccent"
         tools:visibility="visible" />
 
     <!-- Error overlay -->

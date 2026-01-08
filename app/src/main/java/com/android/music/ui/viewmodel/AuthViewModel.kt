@@ -57,6 +57,10 @@ class AuthViewModel : ViewModel() {
         _showSignInPrompt.value = false
     }
     
+    fun refreshAuthState() {
+        checkCurrentUser()
+    }
+    
     sealed class SignInState {
         object Loading : SignInState()
         data class Success(val user: User) : SignInState()

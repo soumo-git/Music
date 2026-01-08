@@ -225,9 +225,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:text="Check for Updates"
-                android:textColor="?attr/colorPrimary"
+                android:textColor="#A9A9A9"
                 android:backgroundTint="@android:color/transparent"
-                android:strokeColor="?attr/colorPrimary"
+                android:strokeColor="@color/bottomNavUnselected"
                 android:strokeWidth="2"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 

@@ -15,13 +15,16 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 
 class SongAdapter(
     private val onSongClick: (Song) -> Unit,
-    private val onSongOptionClick: (Song, SongOption) -> Unit
+    private val onSongOptionClick: (Song, SongOption) -> Unit,
+    private val onSelectionChanged: (Set<Song>) -> Unit = {}
 ) : ListAdapter<Song, SongAdapter.SongViewHolder>(SongDiffCallback()) {
 
     private var currentPlayingSongId: Long? = null
+    private val selectedItems = mutableSetOf<Long>()
+    private var isSelectionMode = false
 
     enum class SongOption {
-        PLAY_LATER, ADD_TO_QUEUE, DELETE, SHARE
+        ADD_TO_QUEUE, DELETE, SHARE
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SongViewHolder {
@@ -48,6 +51,34 @@ class SongAdapter(
         }
     }
 
+    fun isInSelectionMode() = isSelectionMode
+
+    fun getSelectedSongs(): List<Song> {
+        return currentList.filter { selectedItems.contains(it.id) }
+    }
+
+    fun clearSelection() {
+        selectedItems.clear()
+        isSelectionMode = false
+        notifyDataSetChanged()
+        onSelectionChanged(emptySet())
+    }
+
+    private fun toggleSelection(song: Song) {
+        if (selectedItems.contains(song.id)) {
+            selectedItems.remove(song.id)
+        } else {
+            selectedItems.add(song.id)
+        }
+        
+        if (selectedItems.isEmpty()) {
+            isSelectionMode = false
+        }
+        
+        notifyDataSetChanged()
+        onSelectionChanged(getSelectedSongs().toSet())
+    }
+
     inner class SongViewHolder(
         private val binding: ItemSongBinding
     ) : RecyclerView.ViewHolder(binding.root) {
@@ -67,9 +98,13 @@ class SongAdapter(
 
                 // Show playing indicator with animation
                 val isPlaying = song.id == currentPlayingSongId
-                if (isPlaying) {
+                val isSelected = selectedItems.contains(song.id)
+                
+                if (isPlaying && !isSelectionMode) {
                     ivPlayingIndicator.visibility = View.VISIBLE
-                    // Highlight the playing song
+                    root.setBackgroundColor(0x1A8B5CF6)
+                } else if (isSelected) {
+                    ivPlayingIndicator.visibility = View.GONE
                     root.setBackgroundColor(0x1A8B5CF6)
                 } else {
                     ivPlayingIndicator.visibility = View.GONE
@@ -77,10 +112,28 @@ class SongAdapter(
                 }
 
                 // Click listeners
-                root.setOnClickListener { onSongClick(song) }
+                root.setOnClickListener {
+                    if (isSelectionMode) {
+                        toggleSelection(song)
+                    } else {
+                        onSongClick(song)
+                    }
+                }
+                
+                root.setOnLongClickListener {
+                    if (!isSelectionMode) {
+                        isSelectionMode = true
+                    }
+                    toggleSelection(song)
+                    true
+                }
                 
                 btnOptions.setOnClickListener { view ->
-                    showPopupMenu(view, song)
+                    if (isSelectionMode) {
+                        toggleSelection(song)
+                    } else {
+                        showPopupMenu(view, song)
+                    }
                 }
             }
         }
@@ -91,7 +144,6 @@ class SongAdapter(
                 
                 setOnMenuItemClickListener { menuItem ->
                     val option = when (menuItem.itemId) {
-                        R.id.action_play_later -> SongOption.PLAY_LATER
                         R.id.action_add_to_queue -> SongOption.ADD_TO_QUEUE
                         R.id.action_delete -> SongOption.DELETE
                         R.id.action_share -> SongOption.SHARE

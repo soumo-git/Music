@@ -7,7 +7,8 @@
     android:layout_marginHorizontal="12dp"
     android:layout_marginVertical="6dp"
     app:cardCornerRadius="12dp"
-    app:cardElevation="2dp">
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/cardBackground">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -68,7 +69,7 @@
                     android:layout_height="wrap_content"
                     android:ellipsize="end"
                     android:maxLines="2"
-                    android:textColor="?android:textColorPrimary"
+                    android:textColor="@color/textPrimary"
                     android:textSize="14sp"
                     android:textStyle="bold"
                     tools:text="Video Title Goes Here" />
@@ -80,7 +81,7 @@
                     android:layout_marginTop="2dp"
                     android:ellipsize="end"
                     android:maxLines="1"
-                    android:textColor="?android:textColorSecondary"
+                    android:textColor="@color/textSecondary"
                     android:textSize="12sp"
                     tools:text="Channel Name" />
 
@@ -95,7 +96,7 @@
                         android:id="@+id/tvPlatform"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="?colorPrimary"
+                        android:textColor="@color/colorAccent"
                         android:textSize="11sp"
                         tools:text="YouTube" />
 
@@ -109,15 +110,89 @@
                         android:id="@+id/tvFileSize"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="?android:textColorSecondary"
+                        android:textColor="@color/textSecondary"
                         android:textSize="11sp"
                         tools:text="15.2 MB" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Progress Section -->
+        <!-- Playlist Progress Section (shown only for playlists) -->
         <LinearLayout
+            android:id="@+id/playlistProgressContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:background="@drawable/bg_playlist_progress"
+            android:padding="10dp"
+            tools:visibility="visible">
+
+            <!-- Playlist Progress Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_playlist"
+                    app:tint="@color/colorAccent"
+                    android:contentDescription="Playlist" />
+
+                <TextView
+                    android:id="@+id/tvPlaylistProgress"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:textColor="@color/textPrimary"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    tools:text="3 of 12 songs" />
+
+                <TextView
+                    android:id="@+id/tvPlaylistPercent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    tools:text="25%" />
+            </LinearLayout>
+
+            <!-- Playlist Progress Bar -->
+            <ProgressBar
+                android:id="@+id/playlistProgressBar"
+                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:layout_marginTop="8dp"
+                android:max="100"
+                android:progress="25"
+                android:progressDrawable="@drawable/progress_playlist"
+                tools:progress="25" />
+
+            <!-- Current Item -->
+            <TextView
+                android:id="@+id/tvCurrentItem"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/textSecondary"
+                android:textSize="11sp"
+                android:drawablePadding="4dp"
+                tools:text="Downloading: Song Title Here..." />
+        </LinearLayout>
+
+        <!-- Regular Progress Section -->
+        <LinearLayout
+            android:id="@+id/regularProgressContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
@@ -146,7 +221,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:textColor="?android:textColorSecondary"
+                    android:textColor="@color/textSecondary"
                     android:textSize="12sp"
                     tools:text="Downloading... 45%" />
 

@@ -26,6 +26,7 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES"
         android:usesPermissionFlags="neverForLocation"
         android:minSdkVersion="33"/>
@@ -100,6 +101,21 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:parentActivityName=".ui.activity.MainActivity"/>
 
+        <!-- Local Video Player Activity -->
+        <activity
+            android:name=".videoplayer.ui.LocalVideoPlayerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Music.VideoPlayer"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:parentActivityName=".ui.activity.MainActivity"/>
+
+        <!-- Folder Contents Activity -->
+        <activity
+            android:name=".ui.activity.FolderContentsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Music"
+            android:parentActivityName=".ui.activity.MainActivity"/>
+
         <!-- Legal Document Activity -->
         <activity
             android:name=".legal.LegalDocumentActivity"
@@ -118,6 +134,17 @@
             android:name=".download.service.DownloadService"
             android:exported="false"
             android:foregroundServiceType="dataSync"/>
+
+        <!-- FileProvider for sharing audio files -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+        </provider>
 
         <!-- Music Widget -->
         <receiver

@@ -96,11 +96,10 @@
                     <!-- Indeterminate progress (extraction) -->
                     <ProgressBar
                         android:id="@+id/progressExtracting"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:visibility="gone"
-                        android:indeterminate="true"
-                        style="?android:attr/progressBarStyleSmall"/>
+                        style="@style/ModernLoadingSpinnerSmall"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:visibility="gone"/>
                     
                     <!-- Determinate progress (downloading) -->
                     <ProgressBar
@@ -114,6 +113,19 @@
                         style="?android:attr/progressBarStyleHorizontal"
                         android:progressDrawable="@drawable/circular_progress"/>
                 </FrameLayout>
+                
+                <!-- Playlist Download Progress Text -->
+                <TextView
+                    android:id="@+id/tvPlaylistProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:visibility="visible"
+                    tools:text="3/12 songs"/>
 
             </LinearLayout>
 
@@ -181,8 +193,9 @@
     <!-- Loading -->
     <ProgressBar
         android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        style="@style/ModernLoadingSpinner"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:layout_gravity="center"
         android:visibility="gone"/>
 

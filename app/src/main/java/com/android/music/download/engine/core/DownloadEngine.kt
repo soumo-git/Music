@@ -72,7 +72,12 @@ data class DownloadProgress(
     val totalBytes: Long,
     val speed: String?,
     val eta: String?,
-    val status: DownloadProgressStatus
+    val status: DownloadProgressStatus,
+    // Playlist progress
+    val isPlaylist: Boolean = false,
+    val totalItems: Int = 0,
+    val completedItems: Int = 0,
+    val currentItemTitle: String? = null
 )
 
 enum class DownloadProgressStatus {

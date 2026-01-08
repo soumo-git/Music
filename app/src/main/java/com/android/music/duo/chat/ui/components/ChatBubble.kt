@@ -126,7 +126,7 @@ private fun MessageStatusIcon(status: MessageStatus) {
         MessageStatus.SENT -> R.drawable.ic_check to Color(0xFF8696A0)
         MessageStatus.DELIVERED -> R.drawable.ic_check_double to Color(0xFF8696A0)
         MessageStatus.READ -> R.drawable.ic_check_double to Color(0xFF53BDEB)
-        MessageStatus.FAILED -> R.drawable.ic_error to Color(0xFFE57373)
+        MessageStatus.FAILED -> R.drawable.ic_error to Color(0xFFFF0000)
     }
 
     Icon(

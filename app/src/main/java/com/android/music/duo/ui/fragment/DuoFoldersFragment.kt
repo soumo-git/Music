@@ -44,13 +44,15 @@ class DuoFoldersFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        folderAdapter = FolderAdapter { folder ->
-            // Get songs from this folder from common songs and open songs list
-            val folderSongs = viewModel.getSongsForFolder(folder.path)
-            if (folderSongs.isNotEmpty()) {
-                DuoSongsListActivity.start(requireContext(), folder.name, folderSongs)
+        folderAdapter = FolderAdapter(
+            onFolderClick = { folder ->
+                // Get songs from this folder from common songs and open songs list
+                val folderSongs = viewModel.getSongsForFolder(folder.path)
+                if (folderSongs.isNotEmpty()) {
+                    DuoSongsListActivity.start(requireContext(), folder.name, folderSongs)
+                }
             }
-        }
+        )
 
         binding.rvFolders.apply {
             layoutManager = LinearLayoutManager(requireContext())

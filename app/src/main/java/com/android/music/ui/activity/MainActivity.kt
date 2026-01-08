@@ -762,7 +762,9 @@ class MainActivity : AppCompatActivity() {
         dialogView.findViewById<Button>(R.id.btnOpenDrawer).setOnClickListener {
             authViewModel.dismissSignInPrompt()
             dialog.dismiss()
-            binding.drawerLayout.openDrawer(GravityCompat.START)
+            // Navigate to Profile tab instead of opening drawer
+            binding.bottomNavigation.selectedItemId = R.id.nav_profile
+            showProfileTab()
         }
         
         dialog.show()
@@ -852,6 +854,16 @@ class MainActivity : AppCompatActivity() {
         if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
             binding.drawerLayout.closeDrawer(GravityCompat.START)
         } else {
+            // Check if Downloads tab is active and has folder navigation
+            val downloadsTabFragment = supportFragmentManager.findFragmentById(R.id.downloadsTabContainer)
+                as? DownloadsTabFragment
+            
+            if (downloadsTabFragment != null && binding.downloadsTabContainer.visibility == View.VISIBLE) {
+                if (downloadsTabFragment.handleBackPress()) {
+                    return
+                }
+            }
+            
             // Check if Browse tab is active and has back stack
             val browseFragment = supportFragmentManager.findFragmentById(R.id.browseContainer) 
                 as? com.android.music.browse.ui.fragment.BrowseFragment

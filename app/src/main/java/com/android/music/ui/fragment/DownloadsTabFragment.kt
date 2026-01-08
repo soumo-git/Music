@@ -70,6 +70,15 @@ class DownloadsTabFragment : Fragment() {
                 .commit()
         }
     }
+    
+    /**
+     * Handle back press - returns true if handled (was in subfolder)
+     */
+    fun handleBackPress(): Boolean {
+        val downloadsFragment = childFragmentManager.findFragmentById(com.android.music.R.id.downloadsFragmentContainer)
+            as? com.android.music.download.ui.fragment.DownloadsFragment
+        return downloadsFragment?.handleBackPress() ?: false
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()

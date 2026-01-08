@@ -17,6 +17,7 @@ import kotlin.random.Random
 
 /**
  * Manages Duo ID generation, storage, and Firebase synchronization
+ * Duo ID is now tied to Google account - no ID without login
  */
 class DuoIdManager(private val context: Context) {
 
@@ -24,7 +25,7 @@ class DuoIdManager(private val context: Context) {
         private const val TAG = "DuoIdManager"
         private const val PREFS_NAME = "duo_prefs"
         private const val KEY_DUO_ID = "duo_id"
-        private const val ID_LENGTH = 12
+        const val ID_LENGTH = 12
         
         @Volatile
         private var instance: DuoIdManager? = null
@@ -42,23 +43,30 @@ class DuoIdManager(private val context: Context) {
     private val usersRef = database.getReference("users")
 
     /**
-     * Get or create Duo ID for the current user
+     * Check if user is signed in
      */
-    suspend fun getOrCreateDuoId(): String {
-        // First check local storage
-        val localId = getLocalDuoId()
-        if (localId != null) {
-            Log.d(TAG, "Found local Duo ID: $localId")
-            // Verify it exists in Firebase and sync
-            syncWithFirebase(localId)
-            return localId
+    fun isUserSignedIn(): Boolean {
+        return auth.currentUser != null
+    }
+
+    /**
+     * Get or create Duo ID for the current user
+     * Returns null if user is not signed in
+     */
+    suspend fun getOrCreateDuoId(): String? {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Log.d(TAG, "User not signed in, cannot get/create Duo ID")
+            return null
         }
 
-        // Check if user is signed in and has an ID in Firebase
-        val firebaseId = getFirebaseDuoId()
+        // First check if user already has an ID in Firebase (linked to their Google account)
+        val firebaseId = getFirebaseDuoIdByGoogleUid(currentUser.uid)
         if (firebaseId != null) {
-            Log.d(TAG, "Found Firebase Duo ID: $firebaseId")
+            Log.d(TAG, "Found existing Firebase Duo ID: $firebaseId")
             saveLocalDuoId(firebaseId)
+            // Update device name
+            syncWithFirebase(firebaseId)
             return firebaseId
         }
 
@@ -71,30 +79,31 @@ class DuoIdManager(private val context: Context) {
     }
 
     /**
-     * Get locally stored Duo ID
+     * Get locally stored Duo ID (cache)
      */
     fun getLocalDuoId(): String? {
         return prefs.getString(KEY_DUO_ID, null)
     }
 
     /**
-     * Save Duo ID locally
+     * Save Duo ID locally (cache)
      */
     private fun saveLocalDuoId(duoId: String) {
         prefs.edit().putString(KEY_DUO_ID, duoId).apply()
     }
 
     /**
-     * Get Duo ID from Firebase (if user is signed in)
+     * Clear local Duo ID (on sign out)
      */
-    private suspend fun getFirebaseDuoId(): String? = suspendCancellableCoroutine { cont ->
-        val currentUser = auth.currentUser
-        if (currentUser == null) {
-            cont.resume(null)
-            return@suspendCancellableCoroutine
-        }
+    fun clearLocalDuoId() {
+        prefs.edit().remove(KEY_DUO_ID).apply()
+    }
 
-        usersRef.orderByChild("googleUid").equalTo(currentUser.uid)
+    /**
+     * Get Duo ID from Firebase by Google UID
+     */
+    private suspend fun getFirebaseDuoIdByGoogleUid(googleUid: String): String? = suspendCancellableCoroutine { cont ->
+        usersRef.orderByChild("googleUid").equalTo(googleUid)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if (snapshot.exists()) {
@@ -110,6 +119,14 @@ class DuoIdManager(private val context: Context) {
                     cont.resume(null)
                 }
             })
+    }
+
+    /**
+     * Get Duo ID from Firebase for current user
+     */
+    suspend fun getCurrentUserDuoId(): String? {
+        val currentUser = auth.currentUser ?: return null
+        return getFirebaseDuoIdByGoogleUid(currentUser.uid)
     }
 
     /**
@@ -146,7 +163,7 @@ class DuoIdManager(private val context: Context) {
     /**
      * Check if ID exists in Firebase
      */
-    private suspend fun idExistsInFirebase(duoId: String): Boolean = suspendCancellableCoroutine { cont ->
+    suspend fun idExistsInFirebase(duoId: String): Boolean = suspendCancellableCoroutine { cont ->
         usersRef.child(duoId).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 cont.resume(snapshot.exists())
@@ -160,13 +177,13 @@ class DuoIdManager(private val context: Context) {
     }
 
     /**
-     * Save Duo ID to Firebase
+     * Save Duo ID to Firebase (linked to Google account)
      */
     private fun saveToFirebase(duoId: String) {
-        val currentUser = auth.currentUser
+        val currentUser = auth.currentUser ?: return
         val duoUser = DuoUser(
             duoId = duoId,
-            googleUid = currentUser?.uid,
+            googleUid = currentUser.uid,
             deviceName = Build.MODEL,
             createdAt = System.currentTimeMillis()
         )
@@ -181,18 +198,12 @@ class DuoIdManager(private val context: Context) {
     }
 
     /**
-     * Sync local ID with Firebase (update device name, link Google account)
+     * Sync local ID with Firebase (update device name)
      */
     private fun syncWithFirebase(duoId: String) {
-        val currentUser = auth.currentUser
         val updates = mutableMapOf<String, Any>(
             "deviceName" to Build.MODEL
         )
-        
-        // Link Google account if signed in
-        currentUser?.uid?.let {
-            updates["googleUid"] = it
-        }
 
         usersRef.child(duoId).updateChildren(updates)
             .addOnSuccessListener {
@@ -211,5 +222,63 @@ class DuoIdManager(private val context: Context) {
             return false
         }
         return idExistsInFirebase(duoId)
+    }
+
+    /**
+     * Change Duo ID to a custom one
+     * Returns true if successful, false if ID already exists or invalid
+     */
+    suspend fun changeDuoId(newDuoId: String): Result<String> {
+        val currentUser = auth.currentUser
+            ?: return Result.failure(Exception("User not signed in"))
+
+        // Validate format
+        if (newDuoId.length != ID_LENGTH || !newDuoId.all { it.isDigit() }) {
+            return Result.failure(Exception("ID must be exactly $ID_LENGTH digits"))
+        }
+
+        // Check if ID already exists
+        if (idExistsInFirebase(newDuoId)) {
+            return Result.failure(Exception("This ID is already taken"))
+        }
+
+        // Get current Duo ID
+        val currentDuoId = getFirebaseDuoIdByGoogleUid(currentUser.uid)
+
+        return suspendCancellableCoroutine { cont ->
+            // Create new entry
+            val duoUser = DuoUser(
+                duoId = newDuoId,
+                googleUid = currentUser.uid,
+                deviceName = Build.MODEL,
+                createdAt = System.currentTimeMillis()
+            )
+
+            usersRef.child(newDuoId).setValue(duoUser)
+                .addOnSuccessListener {
+                    // Delete old entry if exists
+                    currentDuoId?.let { oldId ->
+                        usersRef.child(oldId).removeValue()
+                    }
+                    saveLocalDuoId(newDuoId)
+                    Log.d(TAG, "Duo ID changed to: $newDuoId")
+                    cont.resume(Result.success(newDuoId))
+                }
+                .addOnFailureListener { e ->
+                    Log.e(TAG, "Failed to change Duo ID", e)
+                    cont.resume(Result.failure(e))
+                }
+        }
+    }
+
+    /**
+     * Generate and set a new random Duo ID
+     */
+    suspend fun regenerateDuoId(): Result<String> {
+        val currentUser = auth.currentUser
+            ?: return Result.failure(Exception("User not signed in"))
+
+        val newId = generateUniqueDuoId()
+        return changeDuoId(newId)
     }
 }

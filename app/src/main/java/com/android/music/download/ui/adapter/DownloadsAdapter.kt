@@ -19,7 +19,9 @@ class DownloadsAdapter(
     private val onPauseClick: (DownloadItem) -> Unit,
     private val onResumeClick: (DownloadItem) -> Unit,
     private val onCancelClick: (DownloadItem) -> Unit,
-    private val onDeleteClick: (DownloadItem) -> Unit
+    private val onDeleteClick: (DownloadItem) -> Unit,
+    private val onFolderClick: (DownloadItem) -> Unit = {},
+    private val onItemClick: (DownloadItem) -> Unit = {}
 ) : ListAdapter<DownloadItem, DownloadsAdapter.DownloadViewHolder>(DownloadDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DownloadViewHolder {
@@ -44,75 +46,127 @@ class DownloadsAdapter(
             binding.tvAuthor.text = item.author ?: item.platform
             binding.tvPlatform.text = item.platform
             
-            // Load thumbnail
-            if (item.thumbnailUrl != null) {
-                Glide.with(binding.ivThumbnail)
-                    .load(item.thumbnailUrl)
-                    .placeholder(R.drawable.ic_music_note)
-                    .error(R.drawable.ic_music_note)
-                    .centerCrop()
-                    .into(binding.ivThumbnail)
-            } else {
-                binding.ivThumbnail.setImageResource(R.drawable.ic_music_note)
-            }
-            
-            // Duration
-            if (item.duration != null) {
-                binding.tvDuration.text = item.duration
-                binding.tvDuration.visibility = View.VISIBLE
-            } else {
+            // Handle folder vs file display
+            if (item.isFolder) {
+                // Show folder icon
+                binding.ivThumbnail.setImageResource(R.drawable.ic_folder)
                 binding.tvDuration.visibility = View.GONE
-            }
-            
-            // Progress and status
-            when (item.status) {
-                DownloadStatus.PENDING -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.tvStatus.text = "Pending"
-                    binding.tvStatus.visibility = View.VISIBLE
-                    showPendingButtons()
+                binding.tvStatus.text = "${item.itemCount} items"
+                binding.tvStatus.visibility = View.VISIBLE
+                binding.progressBar.visibility = View.GONE
+                binding.playlistProgressContainer.visibility = View.GONE
+                binding.regularProgressContainer.visibility = View.VISIBLE
+                
+                // Hide all action buttons for folders
+                hideAllButtons()
+                
+                // Set click listener for folder
+                binding.root.setOnClickListener { onFolderClick(item) }
+            } else {
+                // Load thumbnail for files
+                if (item.thumbnailUrl != null) {
+                    Glide.with(binding.ivThumbnail)
+                        .load(item.thumbnailUrl)
+                        .placeholder(R.drawable.ic_music_note)
+                        .error(R.drawable.ic_music_note)
+                        .centerCrop()
+                        .into(binding.ivThumbnail)
+                } else {
+                    binding.ivThumbnail.setImageResource(R.drawable.ic_music_note)
                 }
-                DownloadStatus.EXTRACTING -> {
-                    binding.progressBar.visibility = View.VISIBLE
-                    binding.progressBar.isIndeterminate = true
-                    binding.tvStatus.text = "Extracting..."
-                    binding.tvStatus.visibility = View.VISIBLE
-                    hideAllButtons()
+                
+                // Duration
+                if (item.duration != null) {
+                    binding.tvDuration.text = item.duration
+                    binding.tvDuration.visibility = View.VISIBLE
+                } else {
+                    binding.tvDuration.visibility = View.GONE
                 }
-                DownloadStatus.DOWNLOADING -> {
-                    binding.progressBar.visibility = View.VISIBLE
-                    binding.progressBar.isIndeterminate = false
-                    binding.progressBar.progress = item.progress
-                    binding.tvStatus.text = "${item.progress}%"
-                    binding.tvStatus.visibility = View.VISIBLE
+                
+                // Handle playlist progress display
+                val showPlaylistProgress = item.isPlaylist && item.totalItems > 0 && 
+                    item.status == DownloadStatus.DOWNLOADING
+                
+                if (showPlaylistProgress) {
+                    binding.playlistProgressContainer.visibility = View.VISIBLE
+                    binding.regularProgressContainer.visibility = View.GONE
+                    
+                    // Update playlist progress UI
+                    val completed = item.completedItems
+                    val total = item.totalItems
+                    val progressPercent = if (total > 0) (completed * 100) / total else 0
+                    
+                    binding.tvPlaylistProgress.text = "$completed of $total songs"
+                    binding.tvPlaylistPercent.text = "${item.progress}%"
+                    binding.playlistProgressBar.progress = item.progress
+                    
+                    // Current item being downloaded
+                    if (item.currentItemTitle != null) {
+                        binding.tvCurrentItem.text = "♪ ${item.currentItemTitle}"
+                        binding.tvCurrentItem.visibility = View.VISIBLE
+                    } else {
+                        binding.tvCurrentItem.visibility = View.GONE
+                    }
+                    
                     showDownloadingButtons()
+                } else {
+                    binding.playlistProgressContainer.visibility = View.GONE
+                    binding.regularProgressContainer.visibility = View.VISIBLE
+                    
+                    // Progress and status
+                    when (item.status) {
+                        DownloadStatus.PENDING -> {
+                            binding.progressBar.visibility = View.GONE
+                            binding.tvStatus.text = "Pending"
+                            binding.tvStatus.visibility = View.VISIBLE
+                            showPendingButtons()
+                        }
+                        DownloadStatus.EXTRACTING -> {
+                            binding.progressBar.visibility = View.VISIBLE
+                            binding.progressBar.isIndeterminate = true
+                            binding.tvStatus.text = "Extracting..."
+                            binding.tvStatus.visibility = View.VISIBLE
+                            hideAllButtons()
+                        }
+                        DownloadStatus.DOWNLOADING -> {
+                            binding.progressBar.visibility = View.VISIBLE
+                            binding.progressBar.isIndeterminate = false
+                            binding.progressBar.progress = item.progress
+                            binding.tvStatus.text = "${item.progress}%"
+                            binding.tvStatus.visibility = View.VISIBLE
+                            showDownloadingButtons()
+                        }
+                        DownloadStatus.PAUSED -> {
+                            binding.progressBar.visibility = View.VISIBLE
+                            binding.progressBar.isIndeterminate = false
+                            binding.progressBar.progress = item.progress
+                            binding.tvStatus.text = "Paused - ${item.progress}%"
+                            binding.tvStatus.visibility = View.VISIBLE
+                            showPausedButtons()
+                        }
+                        DownloadStatus.COMPLETED -> {
+                            binding.progressBar.visibility = View.GONE
+                            binding.tvStatus.text = "Completed"
+                            binding.tvStatus.visibility = View.VISIBLE
+                            showCompletedButtons()
+                        }
+                        DownloadStatus.FAILED -> {
+                            binding.progressBar.visibility = View.GONE
+                            binding.tvStatus.text = item.errorMessage ?: "Failed"
+                            binding.tvStatus.visibility = View.VISIBLE
+                            showFailedButtons()
+                        }
+                        DownloadStatus.CANCELLED -> {
+                            binding.progressBar.visibility = View.GONE
+                            binding.tvStatus.text = "Cancelled"
+                            binding.tvStatus.visibility = View.VISIBLE
+                            showCancelledButtons()
+                        }
+                    }
                 }
-                DownloadStatus.PAUSED -> {
-                    binding.progressBar.visibility = View.VISIBLE
-                    binding.progressBar.isIndeterminate = false
-                    binding.progressBar.progress = item.progress
-                    binding.tvStatus.text = "Paused - ${item.progress}%"
-                    binding.tvStatus.visibility = View.VISIBLE
-                    showPausedButtons()
-                }
-                DownloadStatus.COMPLETED -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.tvStatus.text = "Completed"
-                    binding.tvStatus.visibility = View.VISIBLE
-                    showCompletedButtons()
-                }
-                DownloadStatus.FAILED -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.tvStatus.text = item.errorMessage ?: "Failed"
-                    binding.tvStatus.visibility = View.VISIBLE
-                    showFailedButtons()
-                }
-                DownloadStatus.CANCELLED -> {
-                    binding.progressBar.visibility = View.GONE
-                    binding.tvStatus.text = "Cancelled"
-                    binding.tvStatus.visibility = View.VISIBLE
-                    showCancelledButtons()
-                }
+                
+                // Set click listener for file
+                binding.root.setOnClickListener { onItemClick(item) }
             }
             
             // File size

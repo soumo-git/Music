@@ -83,7 +83,7 @@
     
     <!-- Duo -->
     <string name="duo_welcome_title">Sync with your Duo</string>
-    <string name="duo_welcome_subtitle">Connect with your partner over WiFi Direct\nand enjoy music together, offline!</string>
+    <string name="duo_welcome_subtitle">Connect with your partner\nand enjoy music together, (Offline/Online both!).</string>
     <string name="duo_connect_button">Connect with your Duo</string>
     <string name="duo_signal_strength">Signal strength</string>
     <string name="duo_status_disconnected">Not connected</string>
@@ -146,4 +146,67 @@
     
     <!-- Firebase -->
     <string name="default_web_client_id" translatable="false">82538693808-8vk4jv8t331p3sd1t83qrnoltefb82m8.apps.googleusercontent.com</string>
+    
+    <!-- Profile -->
+    <string name="guest_user">Guest User</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="sign_out_confirm_title">Sign Out?</string>
+    <string name="sign_out_confirm_message">Are you sure you want to sign out of your account?</string>
+    <string name="duo_id_menu">Duo ID</string>
+    
+    <!-- Duo ID Bottom Sheet -->
+    <string name="duo_id_title">Your Duo ID</string>
+    <string name="duo_id_subtitle">Share this ID with your partner to connect via Duo</string>
+    <string name="duo_your_current_id">Your Current ID</string>
+    <string name="duo_change_id">Change ID</string>
+    <string name="duo_enter_custom_id">Enter custom 12-digit ID</string>
+    <string name="duo_auto_generate">Auto Generate</string>
+    <string name="duo_save_id">Save ID</string>
+    <string name="duo_sign_in_required">Sign in with Google to get your Duo ID</string>
+    <string name="duo_id_changed">Duo ID changed successfully!</string>
+    <string name="duo_share_id_message">Connect with me on Duo! My ID is: %s</string>
+    
+    <!-- Video Player -->
+    <string name="video_options">Video options</string>
+    <string name="video_share">Share video</string>
+    <string name="video_delete">Delete video</string>
+    <string name="video_info">Video info</string>
+    <string name="video_playing">Now playing video</string>
+    
+    <!-- File Sharing -->
+    <string name="file_share_title">Direct Share</string>
+    <string name="file_share_long_press_hint">Long press to select files for sharing</string>
+    <string name="file_share_selected_count">%d file(s) selected</string>
+    <string name="file_share_send">Share Files</string>
+    <string name="file_share_confirm_title">Share Files?</string>
+    <string name="file_share_confirm_message">Send %d file(s) (%s) to your Duo partner?</string>
+    <string name="file_share_sending">Sending files…</string>
+    <string name="file_share_receiving">Receiving files…</string>
+    <string name="file_share_complete">Transfer complete!</string>
+    <string name="file_share_failed">Transfer failed</string>
+    <string name="file_share_cancelled">Transfer cancelled</string>
+    <string name="file_share_incoming_title">Incoming Files</string>
+    <string name="file_share_incoming_message">%s wants to send you %d file(s) (%s)</string>
+    <string name="file_share_accept">Accept</string>
+    <string name="file_share_reject">Reject</string>
+    <string name="file_share_progress">%s - %d%%</string>
+    <string name="file_share_speed">%s/s</string>
+    <string name="file_share_no_videos">No videos found</string>
+    <string name="file_share_no_artists">No artists found</string>
+    <string name="file_share_no_albums">No albums found</string>
+    <string name="file_share_no_folders">No folders found</string>
+    <string name="cd_back">Go back</string>
+    
+    <!-- File Transfer Notification -->
+    <string name="notification_channel_file_transfer">File Transfer</string>
+    <string name="notification_file_transfer_title">Duo File Transfer</string>
+    <string name="notification_file_sending">Sending: %s</string>
+    <string name="notification_file_receiving">Receiving: %s</string>
+    
+    <!-- Song Actions -->
+    <string name="delete_song_confirm">Are you sure you want to delete \"%s\"?</string>
+    <string name="song_deleted">\"%s\" deleted</string>
+    <string name="delete_failed">Failed to delete song</string>
+    <string name="added_to_queue">Added to queue</string>
 </resources>

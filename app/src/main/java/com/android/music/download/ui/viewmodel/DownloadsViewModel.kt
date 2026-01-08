@@ -58,6 +58,10 @@ class DownloadsViewModel : ViewModel() {
     private val _showEngineSetup = MutableLiveData<Boolean>(false)
     val showEngineSetup: LiveData<Boolean> = _showEngineSetup
     
+    // Emoji error event - emits when playlist name contains emojis
+    private val _emojiError = MutableLiveData<String?>()
+    val emojiError: LiveData<String?> = _emojiError
+    
     // Preview ready event - emits when preview URLs are ready to play
     private val _previewReady = MutableLiveData<PreviewData?>()
     val previewReady: LiveData<PreviewData?> = _previewReady
@@ -113,8 +117,117 @@ class DownloadsViewModel : ViewModel() {
         }
 
         val files = dir.listFiles() ?: emptyArray()
+        val items = mutableListOf<DownloadItem>()
+        
+        // Add folders first
+        files.filter { it.isDirectory && !it.name.startsWith(".") }
+            .sortedByDescending { it.lastModified() }
+            .forEach { folder ->
+                val folderFiles = folder.listFiles()?.filter { it.isFile } ?: emptyList()
+                val totalSize = folderFiles.sumOf { it.length() }
+                
+                items.add(DownloadItem(
+                    id = folder.absolutePath,
+                    title = folder.name,
+                    url = folder.absolutePath,
+                    thumbnailUrl = null,
+                    duration = null,
+                    author = "${folderFiles.size} items",
+                    platform = "Playlist",
+                    status = DownloadStatus.COMPLETED,
+                    progress = 100,
+                    fileSize = totalSize,
+                    downloadedSize = totalSize,
+                    createdAt = java.util.Date(folder.lastModified()),
+                    completedAt = java.util.Date(folder.lastModified()),
+                    filePath = folder.absolutePath,
+                    errorMessage = null,
+                    isFolder = true,
+                    itemCount = folderFiles.size
+                ))
+            }
+        
+        // Add files
+        files.filter { it.isFile && !it.name.startsWith(".") }
+            .sortedByDescending { it.lastModified() }
+            .forEach { file ->
+                items.add(DownloadItem(
+                    id = file.absolutePath,
+                    title = file.nameWithoutExtension,
+                    url = file.absolutePath,
+                    thumbnailUrl = null,
+                    duration = null,
+                    author = null,
+                    platform = "Local",
+                    status = DownloadStatus.COMPLETED,
+                    progress = 100,
+                    fileSize = file.length(),
+                    downloadedSize = file.length(),
+                    createdAt = java.util.Date(file.lastModified()),
+                    completedAt = java.util.Date(file.lastModified()),
+                    filePath = file.absolutePath,
+                    errorMessage = null,
+                    isFolder = false,
+                    itemCount = 0
+                ))
+            }
+
+        _downloads.value = items
+    }
+
+    /**
+     * Public API to force-reload downloads from persistent storage
+     */
+    fun reloadFromStorage() {
+        loadSavedDownloads()
+    }
+    
+    // Current folder path for navigation
+    private var currentFolderPath: String? = null
+    
+    private val _currentFolder = MutableLiveData<String?>(null)
+    val currentFolder: LiveData<String?> = _currentFolder
+    
+    /**
+     * Navigate into a folder
+     */
+    fun openFolder(folderPath: String) {
+        currentFolderPath = folderPath
+        _currentFolder.value = folderPath
+        loadFolderContents(folderPath)
+    }
+    
+    /**
+     * Navigate back to root
+     */
+    fun navigateBack(): Boolean {
+        if (currentFolderPath != null) {
+            currentFolderPath = null
+            _currentFolder.value = null
+            loadSavedDownloads()
+            return true
+        }
+        return false
+    }
+    
+    /**
+     * Check if currently in a subfolder
+     */
+    fun isInSubfolder(): Boolean = currentFolderPath != null
+    
+    /**
+     * Load contents of a specific folder
+     */
+    private fun loadFolderContents(folderPath: String) {
+        val folder = File(folderPath)
+        if (!folder.exists() || !folder.isDirectory) {
+            _downloads.value = emptyList()
+            return
+        }
+        
+        val files = folder.listFiles() ?: emptyArray()
         val items = files
-            .filter { it.isFile }
+            .filter { it.isFile && !it.name.startsWith(".") }
             .sortedByDescending { it.lastModified() }
             .map { file ->
                 DownloadItem(
@@ -132,18 +245,13 @@ class DownloadsViewModel : ViewModel() {
                     createdAt = java.util.Date(file.lastModified()),
                     completedAt = java.util.Date(file.lastModified()),
                     filePath = file.absolutePath,
-                    errorMessage = null
+                    errorMessage = null,
+                    isFolder = false,
+                    itemCount = 0
                 )
             }
-
+        
         _downloads.value = items
-    }
-
-    /**
-     * Public API to force-reload downloads from persistent storage
-     */
-    fun reloadFromStorage() {
-        loadSavedDownloads()
     }
 
     private fun persistDownloads() {
@@ -355,7 +463,15 @@ class DownloadsViewModel : ViewModel() {
                 )
                 
                 val downloadId = UUID.randomUUID().toString()
-                val outputPath = "$downloadDirectory/${sanitizeFilename(content.title)}.${format.extension}"
+                
+                // For playlists, pass the directory; for single videos, pass the full file path
+                val outputPath = if (content.isPlaylist) {
+                    // Just pass the download directory - engine will create playlist folder
+                    downloadDirectory
+                } else {
+                    // Single video - pass full file path
+                    "$downloadDirectory/${sanitizeFilename(content.title)}.${format.extension}"
+                }
                 
                 val downloadItem = DownloadItem(
                     id = downloadId,
@@ -379,7 +495,19 @@ class DownloadsViewModel : ViewModel() {
                 engine.download(content.url, format, outputPath).collectLatest { progress ->
                     when (progress.status) {
                         DownloadProgressStatus.DOWNLOADING, DownloadProgressStatus.PROCESSING -> {
-                            DownloadStateManager.setState(videoId, DownloadStateManager.DownloadState.DOWNLOADING, progress.progress, formatId)
+                            if (progress.isPlaylist) {
+                                DownloadStateManager.setPlaylistState(
+                                    videoId = videoId,
+                                    state = DownloadStateManager.DownloadState.DOWNLOADING,
+                                    progress = progress.progress,
+                                    formatId = formatId,
+                                    totalItems = progress.totalItems,
+                                    completedItems = progress.completedItems,
+                                    currentItemTitle = progress.currentItemTitle
+                                )
+                            } else {
+                                DownloadStateManager.setState(videoId, DownloadStateManager.DownloadState.DOWNLOADING, progress.progress, formatId)
+                            }
                         }
                         DownloadProgressStatus.COMPLETED -> {
                             DownloadStateManager.setState(videoId, DownloadStateManager.DownloadState.COMPLETED)
@@ -413,14 +541,43 @@ class DownloadsViewModel : ViewModel() {
                     return@launch
                 }
                 
-                val format = content.formats.find { it.formatId == formatId }
-                if (format == null) {
-                    _error.value = "Invalid format selected"
-                    return@launch
+                // Check for emojis in playlist name
+                if (content.isPlaylist) {
+                    val playlistName = extractPlaylistName(content.title)
+                    if (containsEmoji(playlistName)) {
+                        _emojiError.value = playlistName
+                        return@launch
+                    }
                 }
                 
+                // Find format or create default based on formatId
+                val format = content.formats.find { it.formatId == formatId } ?: DownloadFormat(
+                    formatId = formatId,
+                    extension = if (formatId == "bestaudio") "mp3" else "mp4",
+                    quality = when (formatId) {
+                        "bestaudio" -> "Audio Only (MP3)"
+                        "bestvideo" -> "Video Only"
+                        else -> "Best Quality"
+                    },
+                    fileSize = null,
+                    hasAudio = formatId != "bestvideo",
+                    hasVideo = formatId != "bestaudio",
+                    resolution = null
+                )
+                
                 val downloadId = UUID.randomUUID().toString()
-                val outputPath = "$downloadDirectory/${sanitizeFilename(content.title)}.${format.extension}"
+                
+                // For playlists, pass the directory; for single videos, pass the full file path
+                val outputPath = if (content.isPlaylist) {
+                    // Just pass the download directory - engine will create playlist folder
+                    downloadDirectory
+                } else {
+                    // Single video - pass full file path
+                    "$downloadDirectory/${sanitizeFilename(content.title)}.${format.extension}"
+                }
+                
+                // Get playlist item count
+                val playlistItemCount = if (content.isPlaylist) content.playlistItems.size else 0
                 
                 val downloadItem = DownloadItem(
                     id = downloadId,
@@ -432,7 +589,11 @@ class DownloadsViewModel : ViewModel() {
                     platform = content.platform,
                     status = DownloadStatus.DOWNLOADING,
                     fileSize = format.fileSize,
-                    filePath = outputPath
+                    filePath = outputPath,
+                    isPlaylist = content.isPlaylist,
+                    totalItems = playlistItemCount,
+                    completedItems = 0,
+                    currentItemTitle = null
                 )
                 
                 val currentDownloads = _downloads.value?.toMutableList() ?: mutableListOf()
@@ -472,7 +633,12 @@ class DownloadsViewModel : ViewModel() {
             progress = progress.progress,
             downloadedSize = progress.downloadedBytes,
             status = newStatus,
-            completedAt = if (newStatus == DownloadStatus.COMPLETED) java.util.Date() else null
+            completedAt = if (newStatus == DownloadStatus.COMPLETED) java.util.Date() else null,
+            // Playlist progress
+            isPlaylist = progress.isPlaylist,
+            totalItems = progress.totalItems,
+            completedItems = progress.completedItems,
+            currentItemTitle = progress.currentItemTitle
         )
         
         _downloads.postValue(currentDownloads)
@@ -523,7 +689,13 @@ class DownloadsViewModel : ViewModel() {
             
             download?.filePath?.let { path ->
                 try {
-                    java.io.File(path).delete()
+                    val file = java.io.File(path)
+                    if (file.isDirectory) {
+                        // Delete folder and all contents recursively
+                        file.deleteRecursively()
+                    } else {
+                        file.delete()
+                    }
                 } catch (e: Exception) {
                     // Ignore file deletion errors
                 }
@@ -562,5 +734,44 @@ class DownloadsViewModel : ViewModel() {
 
     fun dismissEngineSetup() {
         _showEngineSetup.value = false
+    }
+    
+    fun clearEmojiError() {
+        _emojiError.value = null
+    }
+    
+    /**
+     * Check if a string contains emoji characters
+     */
+    private fun containsEmoji(text: String): Boolean {
+        for (char in text) {
+            val codePoint = char.code
+            // Check for common emoji ranges
+            if (codePoint > 127) {
+                // Non-ASCII character - could be emoji or special character
+                // Check specific emoji ranges
+                if (codePoint in 0x1F300..0x1F9FF || // Miscellaneous Symbols and Pictographs, Emoticons, etc.
+                    codePoint in 0x2600..0x26FF ||   // Miscellaneous Symbols
+                    codePoint in 0x2700..0x27BF ||   // Dingbats
+                    codePoint in 0xFE00..0xFE0F ||   // Variation Selectors
+                    codePoint in 0x1F000..0x1F02F || // Mahjong Tiles
+                    codePoint in 0x1F0A0..0x1F0FF || // Playing Cards
+                    codePoint in 0x200D..0x200D ||   // Zero Width Joiner (used in emoji sequences)
+                    codePoint > 0xFFFF) {            // Supplementary planes (most emojis)
+                    return true
+                }
+            }
+        }
+        // Also check using regex for surrogate pairs (emojis in Java/Kotlin)
+        val emojiPattern = Regex("[\\uD83C-\\uDBFF\\uDC00-\\uDFFF]+")
+        return emojiPattern.containsMatchIn(text)
+    }
+    
+    /**
+     * Extract the playlist name without item count suffix for emoji checking
+     */
+    private fun extractPlaylistName(title: String): String {
+        // Remove " (X items)" suffix if present
+        return title.replace(Regex("\\s*\\(\\d+\\s*items?\\)\\s*$"), "").trim()
     }
 }

@@ -183,7 +183,17 @@ enum class MessageType {
     TYPING_STOP,
     MESSAGE_DELIVERED,
     MESSAGE_READ,
-    VOICE_MESSAGE
+    VOICE_MESSAGE,
+    // File transfer message types
+    FILE_TRANSFER_REQUEST,
+    FILE_TRANSFER_ACCEPT,
+    FILE_TRANSFER_REJECT,
+    FILE_CHUNK,
+    FILE_COMPLETE,
+    FILE_ACK,
+    TRANSFER_COMPLETE,
+    TRANSFER_CANCEL,
+    CHUNK_RETRANSMIT
 }
 
 // Payload classes

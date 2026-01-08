@@ -105,6 +105,32 @@ class DuoFragment : Fragment() {
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = tabAdapter?.getTabTitle(position)
         }.attach()
+        
+        // Setup swipe refresh
+        binding.swipeRefresh.setColorSchemeResources(
+            R.color.colorAccent,
+            R.color.colorPrimary
+        )
+        binding.swipeRefresh.setProgressBackgroundColorSchemeResource(R.color.surfaceColor)
+        binding.swipeRefresh.setOnRefreshListener {
+            refreshLibrary()
+        }
+    }
+    
+    /**
+     * Refresh the library by resyncing with partner and reloading local songs
+     */
+    private fun refreshLibrary() {
+        // Resync library with partner
+        duoViewModel.resyncLibrary()
+        
+        // Reload local songs from MusicViewModel
+        musicViewModel.loadAllMedia()
+        
+        // Stop refreshing indicator after a delay
+        binding.swipeRefresh.postDelayed({
+            binding.swipeRefresh.isRefreshing = false
+        }, 2000)
     }
 
     private fun setupClickListeners() {

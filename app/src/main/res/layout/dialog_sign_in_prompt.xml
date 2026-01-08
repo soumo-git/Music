@@ -29,7 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/spacing_md"
         android:gravity="center"
-        android:text="Open the sidebar and tap 'Sign in with Google' to get started"
+        android:text="Go to Profile to sign in with Google and sync your preferences across devices"
         android:textColor="@color/textSecondary"
         android:textSize="@dimen/text_size_md"/>
 
@@ -60,7 +60,7 @@
             android:background="@drawable/bg_shuffle_button"
             android:paddingHorizontal="@dimen/spacing_xl"
             android:paddingVertical="@dimen/spacing_sm"
-            android:text="Open Sidebar"
+            android:text="Go to Profile"
             android:textAllCaps="false"
             android:textColor="@color/shuffleButtonText"
             android:textSize="@dimen/text_size_md"/>

@@ -212,22 +212,33 @@ class PlaylistVideosFragment : Fragment() {
                     btnDownload.visibility = View.INVISIBLE
                     progressExtracting.visibility = View.VISIBLE
                     progressDownloading.visibility = View.GONE
+                    tvPlaylistProgress?.visibility = View.GONE
                 }
                 DownloadStateManager.DownloadState.DOWNLOADING -> {
                     btnDownload.visibility = View.INVISIBLE
                     progressExtracting.visibility = View.GONE
                     progressDownloading.visibility = View.VISIBLE
                     progressDownloading.progress = info.progress
+                    
+                    // Show playlist progress if available
+                    if (info.isPlaylist && info.totalItems > 0) {
+                        tvPlaylistProgress?.visibility = View.VISIBLE
+                        tvPlaylistProgress?.text = "${info.completedItems}/${info.totalItems} songs"
+                    } else {
+                        tvPlaylistProgress?.visibility = View.GONE
+                    }
                 }
                 DownloadStateManager.DownloadState.COMPLETED -> {
                     btnDownload.visibility = View.VISIBLE
                     progressExtracting.visibility = View.GONE
                     progressDownloading.visibility = View.GONE
+                    tvPlaylistProgress?.visibility = View.GONE
                 }
                 else -> {
                     btnDownload.visibility = View.VISIBLE
                     progressExtracting.visibility = View.GONE
                     progressDownloading.visibility = View.GONE
+                    tvPlaylistProgress?.visibility = View.GONE
                 }
             }
         }

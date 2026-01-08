@@ -20,7 +20,14 @@ data class DownloadItem(
     val createdAt: Date = Date(),
     val completedAt: Date? = null,
     val filePath: String? = null,
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    val isFolder: Boolean = false,
+    val itemCount: Int = 0,
+    // Playlist download progress
+    val isPlaylist: Boolean = false,
+    val totalItems: Int = 0,
+    val completedItems: Int = 0,
+    val currentItemTitle: String? = null
 )
 
 /**
