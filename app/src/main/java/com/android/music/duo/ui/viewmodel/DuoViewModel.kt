@@ -30,7 +30,6 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
     val isHost: StateFlow<Boolean> = repository.isHost
     private val wifiDirectSignalStrength: StateFlow<SignalStrength> = repository.signalStrength
     val discoveredDevices: StateFlow<List<DuoDevice>> = repository.discoveredDevices
-    val isWifiP2pEnabled: StateFlow<Boolean> = repository.isWifiP2pEnabled
 
     // WebRTC connection state
     val webRTCConnectionState: StateFlow<WebRTCConnectionState> = webRTCRepository.connectionState
@@ -52,29 +51,25 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
     
     // Videos - derived from common songs
     private val _commonVideos = MutableStateFlow<List<Video>>(emptyList())
-    val commonVideos: StateFlow<List<Video>> = _commonVideos.asStateFlow()
-    
+
     private val _filteredVideos = MutableStateFlow<List<Video>>(emptyList())
     val filteredVideos: StateFlow<List<Video>> = _filteredVideos.asStateFlow()
     
     // Artists - derived from common songs
     private val _commonArtists = MutableStateFlow<List<Artist>>(emptyList())
-    val commonArtists: StateFlow<List<Artist>> = _commonArtists.asStateFlow()
-    
+
     private val _filteredArtists = MutableStateFlow<List<Artist>>(emptyList())
     val filteredArtists: StateFlow<List<Artist>> = _filteredArtists.asStateFlow()
     
     // Albums - derived from common songs
     private val _commonAlbums = MutableStateFlow<List<Album>>(emptyList())
-    val commonAlbums: StateFlow<List<Album>> = _commonAlbums.asStateFlow()
-    
+
     private val _filteredAlbums = MutableStateFlow<List<Album>>(emptyList())
     val filteredAlbums: StateFlow<List<Album>> = _filteredAlbums.asStateFlow()
     
     // Folders - derived from common songs (folders containing common songs)
     private val _commonFolders = MutableStateFlow<List<Folder>>(emptyList())
-    val commonFolders: StateFlow<List<Folder>> = _commonFolders.asStateFlow()
-    
+
     private val _filteredFolders = MutableStateFlow<List<Folder>>(emptyList())
     val filteredFolders: StateFlow<List<Folder>> = _filteredFolders.asStateFlow()
     
@@ -86,11 +81,9 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
 
     // Search
     private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     // Sort
     private val _sortOption = MutableStateFlow(DuoSortOption.NAME)
-    val sortOption: StateFlow<DuoSortOption> = _sortOption.asStateFlow()
 
     // Current playing
     private val _currentSong = MutableStateFlow<Song?>(null)
@@ -101,14 +94,11 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
 
     // Playback controls
     private val _shuffleEnabled = MutableStateFlow(false)
-    val shuffleEnabled: StateFlow<Boolean> = _shuffleEnabled.asStateFlow()
 
     private val _repeatMode = MutableStateFlow(RepeatMode.OFF)
-    val repeatMode: StateFlow<RepeatMode> = _repeatMode.asStateFlow()
 
     // Events
     private val _showConnectionSheet = MutableStateFlow(false)
-    val showConnectionSheet: StateFlow<Boolean> = _showConnectionSheet.asStateFlow()
 
     private val _toastMessage = MutableSharedFlow<String>()
     val toastMessage: SharedFlow<String> = _toastMessage.asSharedFlow()
@@ -138,8 +128,7 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
 
     // Device info
     val deviceName: String = Build.MODEL
-    val userId: String = "DUO${System.currentTimeMillis() % 10000}" // Legacy - now using WebRTC Duo ID
-    
+
     // Chat state
     private val _chatMessages = MutableStateFlow<List<com.android.music.duo.chat.model.ChatMessage>>(emptyList())
     val chatMessages: StateFlow<List<com.android.music.duo.chat.model.ChatMessage>> = _chatMessages.asStateFlow()
@@ -294,7 +283,7 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
             isFromMe = false,
             status = com.android.music.duo.chat.model.MessageStatus.DELIVERED
         )
-        _chatMessages.value = _chatMessages.value + message
+        _chatMessages.value += message
         _isPartnerTyping.value = false
         
         // Show unread badge if chat is not open
@@ -329,7 +318,7 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
             voiceDuration = payload.duration,
             voiceData = android.util.Base64.decode(payload.audioBase64, android.util.Base64.DEFAULT)
         )
-        _chatMessages.value = _chatMessages.value + message
+        _chatMessages.value += message
         _isPartnerTyping.value = false
         
         // Show unread badge if chat is not open
@@ -461,7 +450,7 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
         )
         
         val messageId = message.id
-        _chatMessages.value = _chatMessages.value + message
+        _chatMessages.value += message
         android.util.Log.d("DuoViewModel", "Added message with id: $messageId, status: SENDING")
         
         viewModelScope.launch {
@@ -563,7 +552,7 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
         } else {
             // Check permission first
             val context = getApplication<Application>()
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 if (context.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) 
                     != android.content.pm.PackageManager.PERMISSION_GRANTED) {
                     android.util.Log.d("DuoViewModel", "RECORD_AUDIO permission not granted, requesting...")
@@ -675,7 +664,7 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
     private fun cleanupRecording() {
         try {
             mediaRecorder?.release()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Ignore
         }
         mediaRecorder = null
@@ -697,8 +686,8 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
             voiceDuration = duration,
             voiceData = audioData
         )
-        
-        _chatMessages.value = _chatMessages.value + message
+
+        _chatMessages.value += message
         
         viewModelScope.launch {
             val audioBase64 = android.util.Base64.encodeToString(audioData, android.util.Base64.DEFAULT)
@@ -1101,10 +1090,6 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
                     _toastMessage.emit("Partner disconnected")
                 }
             }
-            else -> {
-                android.util.Log.d("DuoViewModel", "Unknown command: $command")
-                isProcessingRemoteCommand = false
-            }
         }
     }
 
@@ -1309,10 +1294,6 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
         _sortOption.value = option
     }
 
-    fun showConnectionSheet() {
-        _showConnectionSheet.value = true
-    }
-
     fun hideConnectionSheet() {
         _showConnectionSheet.value = false
     }
@@ -1330,10 +1311,6 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         )
-    }
-
-    fun stopDiscovery() {
-        repository.stopDiscovery()
     }
 
     fun connectToDevice(device: DuoDevice) {
@@ -1418,30 +1395,6 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
         
         viewModelScope.launch {
             val playlist = filteredSongs.value.ifEmpty { listOf(song) }
-            _playSongEvent.emit(Pair(song, playlist))
-        }
-        
-        // Send command to partner device via appropriate channel
-        viewModelScope.launch {
-            val songHash = repository.getSongHash(song)
-            android.util.Log.d("DuoViewModel", "Sending play command for ${song.title}, hash=$songHash")
-            
-            if (webRTCRepository.isConnected()) {
-                webRTCRepository.sendPlay(songHash)
-            } else {
-                repository.sendPlay(songHash)
-            }
-        }
-    }
-    
-    /**
-     * Play a song from a specific playlist (used by DuoSongsListActivity)
-     */
-    fun playSongFromList(song: Song, playlist: List<Song>) {
-        _currentSong.value = song
-        _isPlaying.value = true
-        
-        viewModelScope.launch {
             _playSongEvent.emit(Pair(song, playlist))
         }
         
@@ -1612,17 +1565,6 @@ class DuoViewModel(application: Application) : AndroidViewModel(application) {
                 } else {
                     repository.sendPlay(songHash)
                 }
-            }
-        }
-    }
-
-    fun toggleShuffle() {
-        _shuffleEnabled.value = !_shuffleEnabled.value
-        viewModelScope.launch {
-            if (webRTCRepository.isConnected()) {
-                webRTCRepository.sendShuffle(_shuffleEnabled.value)
-            } else {
-                repository.sendShuffle(_shuffleEnabled.value)
             }
         }
     }

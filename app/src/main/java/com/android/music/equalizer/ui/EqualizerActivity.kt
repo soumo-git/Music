@@ -1,6 +1,5 @@
 package com.android.music.equalizer.ui
 
-import android.media.AudioManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,7 +11,6 @@ import androidx.lifecycle.lifecycleScope
 import com.android.music.R
 import com.android.music.databinding.ActivityEqualizerBinding
 import com.android.music.equalizer.data.model.EqualizerPreset
-import com.android.music.equalizer.manager.EqualizerManager
 import com.google.android.material.chip.Chip
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -47,8 +45,7 @@ class EqualizerActivity : AppCompatActivity() {
     
     private fun initializeEqualizer() {
         // Use the EqualizerManager to ensure consistent behavior
-        val equalizerManager = EqualizerManager.getInstance(this)
-        
+
         // The engine should already be initialized by MusicService
         // Just initialize the ViewModel with the current state
         viewModel.initialize(0) // Will use existing engine state
@@ -190,15 +187,15 @@ class EqualizerActivity : AppCompatActivity() {
     private fun updateSelectedPreset(presetId: String) {
         for (i in 0 until binding.chipGroupPresets.childCount) {
             val chip = binding.chipGroupPresets.getChildAt(i) as? Chip
-            chip?.isChecked = chip?.tag == presetId
+            chip?.isChecked = chip.tag == presetId
         }
     }
     
     /**
      * ViewHolder for individual EQ band
      */
-    inner class BandViewHolder(
-        private val view: View,
+    class BandViewHolder(
+        view: View,
         private val bandIndex: Int,
         frequency: String
     ) {

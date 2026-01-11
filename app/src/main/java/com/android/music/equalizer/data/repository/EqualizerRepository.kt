@@ -20,8 +20,7 @@ class EqualizerRepository(context: Context) {
         private const val KEY_BAND_LEVELS = "eq_band_levels"
         private const val KEY_BASS_BOOST = "eq_bass_boost"
         private const val KEY_VIRTUALIZER = "eq_virtualizer"
-        private const val KEY_CUSTOM_PRESETS = "eq_custom_presets"
-        
+
         @Volatile
         private var instance: EqualizerRepository? = null
         

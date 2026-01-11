@@ -20,35 +20,23 @@ class DownloadService : Service() {
         
         const val EXTRA_DOWNLOAD_ID = "download_id"
         const val EXTRA_URL = "url"
-        const val EXTRA_FORMAT_ID = "format_id"
-        
-        const val NOTIFICATION_CHANNEL_ID = "download_channel"
-        const val NOTIFICATION_ID = 1001
-    }
 
-    override fun onCreate() {
-        super.onCreate()
-        // TODO: Initialize download engine
-        // TODO: Create notification channel
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_START_DOWNLOAD -> {
-                val url = intent.getStringExtra(EXTRA_URL)
-                val formatId = intent.getStringExtra(EXTRA_FORMAT_ID)
+                intent.getStringExtra(EXTRA_URL)
                 // TODO: Start download
             }
             ACTION_PAUSE_DOWNLOAD -> {
-                val downloadId = intent.getStringExtra(EXTRA_DOWNLOAD_ID)
                 // TODO: Pause download
             }
             ACTION_RESUME_DOWNLOAD -> {
-                val downloadId = intent.getStringExtra(EXTRA_DOWNLOAD_ID)
+                intent.getStringExtra(EXTRA_DOWNLOAD_ID)
                 // TODO: Resume download
             }
             ACTION_CANCEL_DOWNLOAD -> {
-                val downloadId = intent.getStringExtra(EXTRA_DOWNLOAD_ID)
                 // TODO: Cancel download
             }
         }
@@ -60,8 +48,4 @@ class DownloadService : Service() {
         return null
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        // TODO: Cleanup resources
-    }
 }

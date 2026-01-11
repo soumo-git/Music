@@ -53,10 +53,4 @@ class PlayCountManager private constructor(context: Context) {
         return result
     }
 
-    /**
-     * Reset play count for a song
-     */
-    fun resetPlayCount(songId: Long) {
-        prefs.edit().remove("$KEY_PREFIX$songId").apply()
-    }
 }

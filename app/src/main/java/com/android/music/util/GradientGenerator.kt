@@ -142,20 +142,5 @@ object GradientGenerator {
         val b = clamp(Color.blue(color) + rnd.nextInt(-12, 12))
         return Color.rgb(r, g, b)
     }
-    
-    /**
-     * Get a muted background color suitable for UI elements like player bar
-     */
-    fun getPlayerBarColor(songId: Long): Int {
-        val scheme = getGradientScheme(songId)
-        // Create a muted version of the primary color with low alpha for subtle theming
-        return Color.argb(25, Color.red(scheme.primary), Color.green(scheme.primary), Color.blue(scheme.primary))
-    }
-    
-    /**
-     * Get accent color for UI elements
-     */
-    fun getAccentColor(songId: Long): Int {
-        return getGradientScheme(songId).accent
-    }
+
 }

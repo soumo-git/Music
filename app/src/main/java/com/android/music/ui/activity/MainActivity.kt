@@ -452,8 +452,7 @@ class MainActivity : AppCompatActivity() {
         val paint = android.graphics.Paint().apply {
             isAntiAlias = true
         }
-        val strokeWidth = 2f
-        
+
         for (i in -2..2) {
             for (j in -2..2) {
                 if (i != 0 || j != 0) {
@@ -573,7 +572,7 @@ class MainActivity : AppCompatActivity() {
                 
                 // Load actual album art with gradient fallback
                 com.android.music.util.AlbumArtUtil.loadAlbumArtWithFallback(
-                    com.bumptech.glide.Glide.with(this),
+                    Glide.with(this),
                     playerBarBinding.ivPlayerThumbnail,
                     it,
                     44

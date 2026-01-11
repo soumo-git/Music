@@ -1,7 +1,6 @@
 package com.android.music.videoplayer.engine.core
 
 import androidx.media3.ui.PlayerView
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -166,14 +165,9 @@ data class VideoQuality(
 ) {
     companion object {
         val AUTO = VideoQuality("auto", "Auto", 0, 0)
-        val QUALITY_144P = VideoQuality("144p", "144p", 256, 144)
-        val QUALITY_240P = VideoQuality("240p", "240p", 426, 240)
         val QUALITY_360P = VideoQuality("360p", "360p", 640, 360)
         val QUALITY_480P = VideoQuality("480p", "480p", 854, 480)
         val QUALITY_720P = VideoQuality("720p", "720p", 1280, 720)
-        val QUALITY_1080P = VideoQuality("1080p", "1080p", 1920, 1080)
-        val QUALITY_1440P = VideoQuality("1440p", "1440p", 2560, 1440)
-        val QUALITY_2160P = VideoQuality("2160p", "2160p", 3840, 2160)
     }
 }
 
@@ -217,10 +211,3 @@ sealed class VideoEngineUpdateResult {
  */
 open class VideoEngineException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
-class VideoEngineNotInstalledException(message: String = "Video engine is not installed") : VideoEngineException(message)
-class VideoEngineOutdatedException(
-    val currentVersion: String,
-    val latestVersion: String,
-    message: String = "Engine is outdated. Current: $currentVersion, Latest: $latestVersion"
-) : VideoEngineException(message)
-class VideoPlaybackException(message: String, cause: Throwable? = null) : VideoEngineException(message, cause)

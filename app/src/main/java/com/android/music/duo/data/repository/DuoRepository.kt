@@ -2,19 +2,38 @@ package com.android.music.duo.data.repository
 
 import android.content.Context
 import android.net.wifi.p2p.WifiP2pInfo
-import android.util.Base64
 import android.util.Log
 import com.android.music.data.model.Song
-import com.android.music.duo.data.model.*
+import com.android.music.duo.data.model.ChatMessagePayload
+import com.android.music.duo.data.model.DuoCommand
+import com.android.music.duo.data.model.DuoConnectionState
+import com.android.music.duo.data.model.DuoDevice
+import com.android.music.duo.data.model.DuoMessage
+import com.android.music.duo.data.model.MessageAckPayload
+import com.android.music.duo.data.model.MessageType
+import com.android.music.duo.data.model.PlayPayload
+import com.android.music.duo.data.model.QueuePayload
+import com.android.music.duo.data.model.RepeatMode
+import com.android.music.duo.data.model.RepeatPayload
+import com.android.music.duo.data.model.SeekPayload
+import com.android.music.duo.data.model.ShufflePayload
+import com.android.music.duo.data.model.SignalStrength
+import com.android.music.duo.data.model.SongHash
+import com.android.music.duo.data.model.SyncLibraryPayload
+import com.android.music.duo.data.model.SyncResponsePayload
+import com.android.music.duo.data.model.VoiceMessagePayload
 import com.android.music.duo.service.ConnectionStatus
 import com.android.music.duo.service.DuoSocketManager
 import com.android.music.duo.service.WifiDirectManager
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.security.MessageDigest
 
@@ -179,7 +198,7 @@ class DuoRepository(context: Context) {
         }
     }
 
-    private suspend fun handleConnectionInfo(info: WifiP2pInfo) {
+    private fun handleConnectionInfo(info: WifiP2pInfo) {
         Log.d(TAG, "WiFi P2P Connection info: groupFormed=${info.groupFormed}, isGroupOwner=${info.isGroupOwner}, isConnectionInitiator=$isConnectionInitiator")
         
         if (info.groupFormed) {
@@ -267,21 +286,21 @@ class DuoRepository(context: Context) {
             MessageType.MESSAGE_DELIVERED -> {
                 val payload = parsePayload<MessageAckPayload>(message.payload)
                 payload?.let {
-                    android.util.Log.d(TAG, "Received MESSAGE_DELIVERED for: ${it.messageId}")
+                    Log.d(TAG, "Received MESSAGE_DELIVERED for: ${it.messageId}")
                     _messageDelivered.emit(it.messageId)
                 }
             }
             MessageType.MESSAGE_READ -> {
                 val payload = parsePayload<MessageAckPayload>(message.payload)
                 payload?.let {
-                    android.util.Log.d(TAG, "Received MESSAGE_READ for: ${it.messageId}")
+                    Log.d(TAG, "Received MESSAGE_READ for: ${it.messageId}")
                     _messageRead.emit(it.messageId)
                 }
             }
             MessageType.VOICE_MESSAGE -> {
                 val payload = parsePayload<VoiceMessagePayload>(message.payload)
                 payload?.let {
-                    android.util.Log.d(TAG, "Received VOICE_MESSAGE from: ${it.senderName}")
+                    Log.d(TAG, "Received VOICE_MESSAGE from: ${it.senderName}")
                     _incomingVoiceMessage.emit(it)
                     _isPartnerTyping.value = false
                 }
@@ -328,7 +347,7 @@ class DuoRepository(context: Context) {
         Log.d(TAG, "Sync response sent: $responseSuccess")
     }
 
-    private suspend fun handleSyncResponse(payload: String) {
+    private fun handleSyncResponse(payload: String) {
         val response = parsePayload<SyncResponsePayload>(payload) ?: run {
             Log.e(TAG, "Failed to parse sync response payload")
             return
@@ -518,18 +537,6 @@ class DuoRepository(context: Context) {
         Log.d(TAG, "Seek message sent: $success")
     }
 
-    suspend fun sendNext() {
-        Log.d(TAG, "sendNext called")
-        val success = socketManager.sendMessage(DuoMessage.createNext())
-        Log.d(TAG, "Next message sent: $success")
-    }
-
-    suspend fun sendPrevious() {
-        Log.d(TAG, "sendPrevious called")
-        val success = socketManager.sendMessage(DuoMessage.createPrevious())
-        Log.d(TAG, "Previous message sent: $success")
-    }
-
     suspend fun sendShuffle(enabled: Boolean) {
         Log.d(TAG, "sendShuffle called, enabled=$enabled")
         val success = socketManager.sendMessage(DuoMessage.createShuffle(enabled))
@@ -542,18 +549,6 @@ class DuoRepository(context: Context) {
         Log.d(TAG, "Repeat message sent: $success")
     }
 
-    suspend fun sendAddToQueue(songHashes: List<String>) {
-        Log.d(TAG, "sendAddToQueue called")
-        val success = socketManager.sendMessage(DuoMessage.createAddToQueue(songHashes))
-        Log.d(TAG, "AddToQueue message sent: $success")
-    }
-
-    suspend fun sendClearQueue() {
-        Log.d(TAG, "sendClearQueue called")
-        val success = socketManager.sendMessage(DuoMessage.createClearQueue())
-        Log.d(TAG, "ClearQueue message sent: $success")
-    }
-    
     // Chat methods
     
     suspend fun sendChatMessage(message: DuoMessage): Boolean {

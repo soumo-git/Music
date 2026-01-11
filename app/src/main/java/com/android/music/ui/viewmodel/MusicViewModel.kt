@@ -177,13 +177,6 @@ class MusicViewModel : ViewModel() {
         }
     }
 
-    fun selectFolder(folder: Folder) {
-        repository?.let { repo ->
-            val folderSongs = repo.getSongsForFolder(allSongs, folder.path)
-            _navigateToSongsList.value = Pair(folder.name, folderSongs)
-        }
-    }
-
     fun clearNavigation() {
         _navigateToSongsList.value = null
     }
@@ -271,7 +264,7 @@ class MusicViewModel : ViewModel() {
         try {
             val file = File(song.path)
             if (!file.exists()) {
-                android.widget.Toast.makeText(context, "File not found", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "File not found", Toast.LENGTH_SHORT).show()
                 return
             }
             
@@ -288,7 +281,7 @@ class MusicViewModel : ViewModel() {
             }
             context.startActivity(Intent.createChooser(shareIntent, "Share song"))
         } catch (e: Exception) {
-            android.widget.Toast.makeText(context, "Failed to share: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Failed to share: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -315,7 +308,7 @@ class MusicViewModel : ViewModel() {
             }
             
             if (uris.isEmpty()) {
-                android.widget.Toast.makeText(context, "No files found", android.widget.Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "No files found", Toast.LENGTH_SHORT).show()
                 return
             }
             
@@ -326,7 +319,7 @@ class MusicViewModel : ViewModel() {
             }
             context.startActivity(Intent.createChooser(shareIntent, "Share ${uris.size} songs"))
         } catch (e: Exception) {
-            android.widget.Toast.makeText(context, "Failed to share: ${e.message}", android.widget.Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Failed to share: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -344,12 +337,10 @@ class MusicViewModel : ViewModel() {
     
     fun getVideosForFolder(folder: Folder): List<Video> {
         return allVideos.filter { video ->
-            java.io.File(video.path).parent == folder.path
+            File(video.path).parent == folder.path
         }
     }
-    
-    fun getAllVideos(): List<Video> = allVideos
-    
+
     /**
      * Add a song to the playback queue
      */
@@ -402,7 +393,7 @@ class MusicViewModel : ViewModel() {
                         _deleteResult.value = DeleteResult(false, song.title)
                     }
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _deleteResult.value = DeleteResult(false, song.title)
             }
         }
@@ -410,31 +401,6 @@ class MusicViewModel : ViewModel() {
     
     fun clearDeleteResult() {
         _deleteResult.value = null
-    }
-    
-    /**
-     * Get songs with play counts applied
-     */
-    private fun applySortAndFilterWithPlayCounts() {
-        repository?.let { repo ->
-            var result = allSongs
-            
-            // Apply play counts from manager
-            playCountManager?.let { manager ->
-                val playCounts = manager.getAllPlayCounts()
-                result = result.map { song ->
-                    song.copy(playCount = playCounts[song.id] ?: 0)
-                }
-            }
-            
-            if (searchQuery.isNotBlank()) {
-                result = repo.searchSongs(result, searchQuery)
-            }
-            
-            result = repo.sortSongs(result, currentSortOption)
-            _songs.value = result
-            currentPlaylist = result
-        }
     }
 
 }

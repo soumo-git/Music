@@ -61,7 +61,7 @@ object AlbumArtUtil {
         song: com.android.music.data.model.Song,
         sizeDp: Int = 48
     ) {
-        val gradientFallback = com.android.music.util.GradientGenerator.generateTexturedGradient(
+        val gradientFallback = GradientGenerator.generateTexturedGradient(
             imageView.context, song.id, sizeDp
         )
         
@@ -83,7 +83,7 @@ object AlbumArtUtil {
         song: com.android.music.data.model.Song
     ) {
         val context = playerBarContainer.context
-        val scheme = com.android.music.util.GradientGenerator.getGradientScheme(song.id)
+        val scheme = GradientGenerator.getGradientScheme(song.id)
         
         // Create a subtle gradient background using the song's color scheme
         val gradientDrawable = android.graphics.drawable.GradientDrawable().apply {

@@ -72,7 +72,6 @@ class WebRTCManager(private val context: Context) {
         object Idle : WebRTCConnectionState()
         object Initializing : WebRTCConnectionState()
         object GatheringCandidates : WebRTCConnectionState()
-        object WaitingForAnswer : WebRTCConnectionState()
         object Connecting : WebRTCConnectionState()
         object Connected : WebRTCConnectionState()
         data class Error(val message: String) : WebRTCConnectionState()
@@ -358,7 +357,7 @@ class WebRTCManager(private val context: Context) {
         val remoteDesc = SessionDescription(SessionDescription.Type.OFFER, offerSdp)
         
         // Set remote description first
-        val remoteSet = suspendCancellableCoroutine<Boolean> { cont ->
+        val remoteSet = suspendCancellableCoroutine { cont ->
             peerConnection?.setRemoteDescription(object : SdpObserver {
                 override fun onCreateSuccess(p0: SessionDescription?) {}
                 override fun onSetSuccess() {

@@ -2,6 +2,7 @@ package com.android.music.browse.ui.fragment
 
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -37,7 +38,12 @@ class VideoPlayerFragment : BottomSheetDialogFragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        video = arguments?.getParcelable(ARG_VIDEO)
+        video = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arguments?.getParcelable(ARG_VIDEO, YouTubeVideo::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            arguments?.getParcelable(ARG_VIDEO)
+        }
     }
 
     override fun onCreateView(
@@ -174,17 +180,10 @@ class VideoPlayerFragment : BottomSheetDialogFragment() {
             // Try to open in YouTube app first
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$videoId"))
             startActivity(intent)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Fallback to browser
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=$videoId"))
             startActivity(intent)
-        }
-    }
-
-    private fun showPlayer() {
-        binding.apply {
-            youtubePlayerView.visibility = View.VISIBLE
-            thumbnailContainer.visibility = View.GONE
         }
     }
 
@@ -202,7 +201,7 @@ class VideoPlayerFragment : BottomSheetDialogFragment() {
         // Get the BrowseFragment from the activity's fragment manager
         val activity = requireActivity()
         val browseFragment = activity.supportFragmentManager.findFragmentById(R.id.browseContainer) 
-            as? com.android.music.browse.ui.fragment.BrowseFragment
+            as? BrowseFragment
         
         browseFragment?.openChannelById(channelId)
     }

@@ -29,13 +29,6 @@
                 android:padding="16dp"
                 app:layout_collapseMode="parallax">
 
-                <!-- Banner placeholder -->
-                <View
-                    android:id="@+id/bannerPlaceholder"
-                    android:layout_width="match_parent"
-                    android:layout_height="80dp"
-                    android:background="@color/surfaceColor"/>
-
                 <!-- Channel Info Row -->
                 <LinearLayout
                     android:layout_width="match_parent"

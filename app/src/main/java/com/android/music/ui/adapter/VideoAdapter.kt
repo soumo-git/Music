@@ -89,7 +89,7 @@ class VideoAdapter(
                 menu.add(0, R.id.action_delete, 1, R.string.video_delete)
                     .setIcon(R.drawable.ic_delete)
                 menu.add(0, R.id.action_info, 2, R.string.video_info)
-                    .setIcon(R.drawable.ic_info)
+                    .setIcon(R.drawable.ic_error)
                 
                 setOnMenuItemClickListener { menuItem ->
                     when (menuItem.itemId) {

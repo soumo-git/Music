@@ -15,7 +15,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:id="@+id/emptyState"
@@ -33,7 +33,7 @@
             android:layout_width="64dp"
             android:layout_height="64dp"
             android:alpha="0.5"
-            android:src="@drawable/ic_artist"
+            android:src="@drawable/ic_person"
             android:contentDescription="@null"/>
 
         <TextView

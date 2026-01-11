@@ -107,9 +107,5 @@ class EqualizerManager private constructor(context: Context) {
     fun isEnabled(): Boolean {
         return repository.state.value.isEnabled
     }
-    
-    /**
-     * Get current equalizer state
-     */
-    fun getCurrentState() = repository.state.value
+
 }

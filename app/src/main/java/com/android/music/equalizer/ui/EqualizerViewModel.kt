@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.music.equalizer.audio.EqualizerEngine
 import com.android.music.equalizer.data.model.EqualizerPreset
-import com.android.music.equalizer.data.model.EqualizerState
 import com.android.music.equalizer.data.repository.EqualizerRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -177,11 +176,7 @@ class EqualizerViewModel(application: Application) : AndroidViewModel(applicatio
             }
         }
     }
-    
-    override fun onCleared() {
-        super.onCleared()
-        // Don't release engine here - it should persist across activities
-    }
+
 }
 
 /**

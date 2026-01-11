@@ -19,7 +19,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/spacing_lg"
         android:gravity="center"
-        android:text="Sign in to sync your preferences"
+        android:text="@string/sign_in_to_sync_your_preferences"
         android:textColor="@color/textPrimary"
         android:textSize="@dimen/text_size_xl"
         android:textStyle="bold"/>
@@ -29,7 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/spacing_md"
         android:gravity="center"
-        android:text="Go to Profile to sign in with Google and sync your preferences across devices"
+        android:text="@string/sign_in_message"
         android:textColor="@color/textSecondary"
         android:textSize="@dimen/text_size_md"/>
 
@@ -47,7 +47,7 @@
             android:background="?attr/selectableItemBackground"
             android:paddingHorizontal="@dimen/spacing_lg"
             android:paddingVertical="@dimen/spacing_sm"
-            android:text="Maybe Later"
+            android:text="@string/maybe_later"
             android:textAllCaps="false"
             android:textColor="@color/textSecondary"
             android:textSize="@dimen/text_size_md"/>
@@ -60,7 +60,7 @@
             android:background="@drawable/bg_shuffle_button"
             android:paddingHorizontal="@dimen/spacing_xl"
             android:paddingVertical="@dimen/spacing_sm"
-            android:text="Go to Profile"
+            android:text="@string/go_to_profile"
             android:textAllCaps="false"
             android:textColor="@color/shuffleButtonText"
             android:textSize="@dimen/text_size_md"/>

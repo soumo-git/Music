@@ -19,7 +19,7 @@ import kotlin.random.Random
  * Manages Duo ID generation, storage, and Firebase synchronization
  * Duo ID is now tied to Google account - no ID without login
  */
-class DuoIdManager(private val context: Context) {
+class DuoIdManager(context: Context) {
 
     companion object {
         private const val TAG = "DuoIdManager"
@@ -79,13 +79,6 @@ class DuoIdManager(private val context: Context) {
     }
 
     /**
-     * Get locally stored Duo ID (cache)
-     */
-    fun getLocalDuoId(): String? {
-        return prefs.getString(KEY_DUO_ID, null)
-    }
-
-    /**
      * Save Duo ID locally (cache)
      */
     private fun saveLocalDuoId(duoId: String) {
@@ -119,14 +112,6 @@ class DuoIdManager(private val context: Context) {
                     cont.resume(null)
                 }
             })
-    }
-
-    /**
-     * Get Duo ID from Firebase for current user
-     */
-    suspend fun getCurrentUserDuoId(): String? {
-        val currentUser = auth.currentUser ?: return null
-        return getFirebaseDuoIdByGoogleUid(currentUser.uid)
     }
 
     /**
@@ -275,8 +260,6 @@ class DuoIdManager(private val context: Context) {
      * Generate and set a new random Duo ID
      */
     suspend fun regenerateDuoId(): Result<String> {
-        val currentUser = auth.currentUser
-            ?: return Result.failure(Exception("User not signed in"))
 
         val newId = generateUniqueDuoId()
         return changeDuoId(newId)

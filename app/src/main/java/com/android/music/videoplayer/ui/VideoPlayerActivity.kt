@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.WindowManager
@@ -165,10 +164,10 @@ class VideoPlayerActivity : AppCompatActivity() {
     
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     private fun cycleZoomMode(zoomIn: Boolean) {
-        if (zoomIn) {
-            currentZoomMode = (currentZoomMode + 1).coerceAtMost(2)
+        currentZoomMode = if (zoomIn) {
+            (currentZoomMode + 1).coerceAtMost(2)
         } else {
-            currentZoomMode = (currentZoomMode - 1).coerceAtLeast(0)
+            (currentZoomMode - 1).coerceAtLeast(0)
         }
         
         val resizeMode = when (currentZoomMode) {

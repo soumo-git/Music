@@ -11,7 +11,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.lifecycleScope
 import com.android.music.R
 import com.android.music.browse.auth.YouTubeAuthManager
 import com.android.music.browse.data.model.StreamingPlatform
@@ -21,7 +20,6 @@ import com.android.music.browse.ui.viewmodel.BrowseViewModel
 import com.android.music.browse.ui.viewmodel.SpotifyViewModel
 import com.android.music.databinding.FragmentBrowseBinding
 import com.google.android.material.tabs.TabLayoutMediator
-import kotlinx.coroutines.launch
 
 class BrowseFragment : Fragment() {
 
@@ -103,7 +101,7 @@ class BrowseFragment : Fragment() {
         val popup = PopupMenu(requireContext(), anchor)
 
         // Add platforms only (no YouTube sign-in/sign-out entries)
-        StreamingPlatform.values().forEach { platform ->
+        StreamingPlatform.entries.forEach { platform ->
             popup.menu.add(platform.displayName).setOnMenuItemClickListener {
                 selectPlatform(platform)
                 true
@@ -121,14 +119,6 @@ class BrowseFragment : Fragment() {
     private fun signIn() {
         val signInIntent = authManager.getSignInIntent()
         signInLauncher.launch(signInIntent)
-    }
-
-    private fun signOut() {
-        lifecycleScope.launch {
-            authManager.signOut()
-            Toast.makeText(requireContext(), "Signed out", Toast.LENGTH_SHORT).show()
-            updateAuthUI()
-        }
     }
 
     private fun selectPlatform(platform: StreamingPlatform) {
@@ -210,14 +200,6 @@ class BrowseFragment : Fragment() {
         // Link input removed - now in Downloads tab
     }
 
-    private fun searchDownloads(query: String) {
-        // Removed - Downloads is now a separate tab
-    }
-
-    private fun clearDownloadsSearch() {
-        // Removed - Downloads is now a separate tab
-    }
-
     private fun setupTabs() {
         tabAdapter = BrowseTabAdapter(this)
         binding.viewPager.adapter = tabAdapter
@@ -291,11 +273,11 @@ class BrowseFragment : Fragment() {
             }
         }
         
-        viewModel.isAuthenticated.observe(viewLifecycleOwner) { isAuthenticated ->
+        viewModel.isAuthenticated.observe(viewLifecycleOwner) { _ ->
             updateAuthUI()
         }
         
-        spotifyViewModel.isAuthenticated.observe(viewLifecycleOwner) { isAuthenticated ->
+        spotifyViewModel.isAuthenticated.observe(viewLifecycleOwner) { _ ->
             updateAuthUI()
         }
     }
@@ -333,10 +315,6 @@ class BrowseFragment : Fragment() {
             .replace(R.id.browseFragmentContainer, playlistFragment)
             .addToBackStack(PlaylistVideosFragment.TAG)
             .commit()
-    }
-
-    fun selectPlatformByType(platform: StreamingPlatform) {
-        selectPlatform(platform)
     }
 
     override fun onDestroyView() {

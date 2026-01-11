@@ -113,7 +113,7 @@ object SpotifyMapper {
                 }
                 else -> date
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             date
         }
     }

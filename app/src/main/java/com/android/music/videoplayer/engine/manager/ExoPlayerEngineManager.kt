@@ -49,7 +49,7 @@ class ExoPlayerEngineManager(
                     val initResult = engine!!.initialize()
                     
                     if (initResult.isSuccess) {
-                        val version = engine!!.getInstalledVersion() ?: DEFAULT_VERSION
+                        val version = engine!!.getInstalledVersion()
                         config.installedVersion = version
                         config.lastVersionCheck = System.currentTimeMillis()
                         
@@ -136,7 +136,7 @@ class ExoPlayerEngineManager(
             
             _updateProgress.value = 60
             
-            val version = engine!!.getInstalledVersion() ?: DEFAULT_VERSION
+            val version = engine!!.getInstalledVersion()
             config.installedVersion = version
             config.lastVersionCheck = System.currentTimeMillis()
             

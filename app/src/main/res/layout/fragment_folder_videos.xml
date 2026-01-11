@@ -9,9 +9,13 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvVideos"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingBottom="80dp"/>
+        android:paddingBottom="@dimen/spacing_lg"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
         android:id="@+id/emptyState"

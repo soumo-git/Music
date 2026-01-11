@@ -1,8 +1,6 @@
 package com.android.music.browse.auth
 
 import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.util.Base64
 import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,15 +13,11 @@ import java.security.SecureRandom
  * Manages Spotify OAuth2 authentication using PKCE flow.
  * Handles authorization, token management, and refresh for Spotify API access.
  */
-class SpotifyAuthManager(private val context: Context) {
+class SpotifyAuthManager(context: Context) {
 
     companion object {
         private const val TAG = "SpotifyAuthManager"
-        
-        // Spotify OAuth endpoints
-        private const val AUTH_ENDPOINT = "https://accounts.spotify.com/authorize"
-        private const val TOKEN_ENDPOINT = "https://accounts.spotify.com/api/token"
-        
+
         // OAuth configuration
         private const val CLIENT_ID = "YOUR_SPOTIFY_CLIENT_ID" // TODO: Replace with actual client ID
         private const val REDIRECT_URI = "com.android.music://spotify-callback"
@@ -74,27 +68,6 @@ class SpotifyAuthManager(private val context: Context) {
     }
 
     /**
-     * Generate authorization URL with PKCE
-     */
-    fun getAuthorizationUrl(): String {
-        val codeVerifier = generateCodeVerifier()
-        val codeChallenge = generateCodeChallenge(codeVerifier)
-        
-        // Save code verifier for token exchange
-        prefs.edit().putString(KEY_CODE_VERIFIER, codeVerifier).apply()
-        
-        return Uri.parse(AUTH_ENDPOINT).buildUpon()
-            .appendQueryParameter("client_id", CLIENT_ID)
-            .appendQueryParameter("response_type", "code")
-            .appendQueryParameter("redirect_uri", REDIRECT_URI)
-            .appendQueryParameter("scope", SCOPES)
-            .appendQueryParameter("code_challenge_method", "S256")
-            .appendQueryParameter("code_challenge", codeChallenge)
-            .build()
-            .toString()
-    }
-
-    /**
      * Handle authorization callback with code
      */
     suspend fun handleAuthorizationCode(code: String): Result<String> {
@@ -125,7 +98,7 @@ class SpotifyAuthManager(private val context: Context) {
     /**
      * Exchange authorization code for access token
      */
-    private suspend fun exchangeCodeForToken(code: String, codeVerifier: String): Result<TokenData> {
+    private fun exchangeCodeForToken(code: String, codeVerifier: String): Result<TokenData> {
         // TODO: Implement actual token exchange with Spotify API
         // This is a placeholder - implement with Retrofit or OkHttp
         return Result.failure(Exception("Token exchange not implemented"))

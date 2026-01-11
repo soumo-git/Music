@@ -1,10 +1,5 @@
 package com.android.music.duo.chat.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
@@ -55,7 +50,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.android.music.R
-import com.android.music.duo.chat.model.ChatMessage
 import com.android.music.duo.chat.model.ChatState
 import com.android.music.duo.chat.ui.components.ChatBubble
 import com.android.music.duo.chat.ui.components.ParticleBackground
@@ -98,12 +92,9 @@ fun DuoChatScreen(
                         if (dragOffset > 200) {
                             onDismiss()
                         }
-                        dragOffset = 0f
                     },
-                    onVerticalDrag = { _, dragAmount ->
-                        if (dragAmount > 0) {
-                            dragOffset += dragAmount
-                        }
+                    onVerticalDrag = { _, _ ->
+                       // if (dragAmount > 0) { }
                     }
                 )
             }
@@ -125,8 +116,7 @@ fun DuoChatScreen(
             // Header
             ChatHeader(
                 connectionType = chatState.connectionType,
-                signalStrength = chatState.signalStrength,
-                onDismiss = onDismiss
+                signalStrength = chatState.signalStrength
             )
 
             // Messages list
@@ -178,8 +168,7 @@ fun DuoChatScreen(
 @Composable
 private fun ChatHeader(
     connectionType: String,
-    signalStrength: Int,
-    onDismiss: () -> Unit
+    signalStrength: Int
 ) {
     Column(
         modifier = Modifier

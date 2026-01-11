@@ -271,8 +271,8 @@ class DownloadsFragment : Fragment() {
         }
         
         val extension = file.extension.lowercase()
-        when {
-            extension in listOf("mp4", "mkv", "avi", "webm", "mov") -> {
+        when (extension) {
+            in listOf("mp4", "mkv", "avi", "webm", "mov") -> {
                 // Play video
                 val intent = Intent(Intent.ACTION_VIEW)
                 val uri = androidx.core.content.FileProvider.getUriForFile(
@@ -284,7 +284,7 @@ class DownloadsFragment : Fragment() {
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 startActivity(intent)
             }
-            extension in listOf("mp3", "m4a", "aac", "flac", "wav", "ogg") -> {
+            in listOf("mp3", "m4a", "aac", "flac", "wav", "ogg") -> {
                 // Play audio - could integrate with MusicService
                 val intent = Intent(Intent.ACTION_VIEW)
                 val uri = androidx.core.content.FileProvider.getUriForFile(
@@ -454,7 +454,7 @@ class DownloadsFragment : Fragment() {
             // Show playlist with items
             _extractedBinding = ItemExtractedContentBinding.bind(binding.extractedContentView.root)
             _extractedBinding?.apply {
-                tvTitle.text = "${content.title}"
+                tvTitle.text = content.title
                 tvAuthor.text = "Playlist"
                 tvPlatform.text = content.platform
                 tvDuration.visibility = View.GONE
@@ -629,20 +629,6 @@ class DownloadsFragment : Fragment() {
     }
 
     /**
-     * Search in downloaded/extracted content
-     */
-    fun searchDownloads(query: String) {
-        viewModel.searchDownloads(query)
-    }
-
-    /**
-     * Clear search filter
-     */
-    fun clearSearch() {
-        viewModel.clearSearch()
-    }
-
-    /**
      * Extract content from URL
      */
     fun extractFromUrl(url: String) {
@@ -683,7 +669,7 @@ class PlaylistItemsAdapter(
 
     override fun getItemCount() = items.size
 
-    inner class PlaylistItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class PlaylistItemViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvIndex: TextView = itemView.findViewById(R.id.tvIndex)
         private val tvTitle: TextView = itemView.findViewById(R.id.tvTitle)
         private val tvDuration: TextView = itemView.findViewById(R.id.tvDuration)

@@ -2,14 +2,18 @@ package com.android.music.download.engine.ytdlp
 
 import android.content.Context
 import android.media.MediaScannerConnection
-import android.os.Environment
 import android.util.Log
 import com.android.music.download.data.model.DownloadFormat
 import com.android.music.download.data.model.ExtractedContent
-import com.android.music.download.engine.core.*
+import com.android.music.download.engine.core.DownloadEngine
+import com.android.music.download.engine.core.DownloadProgress
+import com.android.music.download.engine.core.DownloadProgressStatus
+import com.android.music.download.engine.core.EngineException
+import com.android.music.download.engine.core.ExtractionFailedException
+import com.android.music.download.engine.core.SupportedPlatform
+import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
-import com.yausername.ffmpeg.FFmpeg
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -82,7 +86,7 @@ class YtDlpAndroidEngine(
             } else {
                 true
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
@@ -159,7 +163,7 @@ class YtDlpAndroidEngine(
             
             Log.d(TAG, "Extracted: ${videoInfo.title}")
             
-            val formats = parseFormats(videoInfo)
+            val formats = parseFormats()
             val platform = SupportedPlatform.fromUrl(url)
             
             // Pre-fetch streaming URLs only if requested (for preview optimization)
@@ -179,14 +183,12 @@ class YtDlpAndroidEngine(
                         val hasVideo = format.vcodec != null && format.vcodec != "none"
                         val noAudio = format.acodec == null || format.acodec == "none"
                         val hasUrl = !format.url.isNullOrEmpty()
-                        val height = format.height?.toString()?.toIntOrNull() ?: 0
+                        val height = format.height.toString().toIntOrNull() ?: 0
                         // Limit to 1080p max for device compatibility
                         val isPlayableResolution = height <= 1920
                         hasVideo && noAudio && hasUrl && isPlayableResolution
-                    }
-                    .sortedByDescending { it.height?.toString()?.toIntOrNull() ?: 0 }
-                    .firstOrNull()
-                
+                    }.maxByOrNull { it.height.toString().toIntOrNull() ?: 0 }
+
                 // Find best audio-only format
                 val bestAudioFormat = videoFormats
                     .filter { format ->
@@ -194,10 +196,8 @@ class YtDlpAndroidEngine(
                         val noVideo = format.vcodec == null || format.vcodec == "none"
                         val hasUrl = !format.url.isNullOrEmpty()
                         hasAudio && noVideo && hasUrl
-                    }
-                    .sortedByDescending { it.tbr?.toString()?.toDoubleOrNull() ?: 0.0 }
-                    .firstOrNull()
-                
+                    }.maxByOrNull { it.tbr.toString().toDoubleOrNull() ?: 0.0 }
+
                 if (bestVideoFormat != null && bestAudioFormat != null) {
                     // Separate video and audio streams for highest quality
                     cachedVideoUrl = bestVideoFormat.url
@@ -210,14 +210,12 @@ class YtDlpAndroidEngine(
                             val hasVideo = format.vcodec != null && format.vcodec != "none"
                             val hasAudio = format.acodec != null && format.acodec != "none"
                             val hasUrl = !format.url.isNullOrEmpty()
-                            val height = format.height?.toString()?.toIntOrNull() ?: 0
+                            val height = format.height.toString().toIntOrNull() ?: 0
                             // Limit to 1080p max for device compatibility
                             val isPlayableResolution = height <= 1920
                             hasVideo && hasAudio && hasUrl && isPlayableResolution
-                        }
-                        .sortedByDescending { it.height?.toString()?.toIntOrNull() ?: 0 }
-                        .firstOrNull()
-                    
+                        }.maxByOrNull { it.height.toString().toIntOrNull() ?: 0 }
+
                     if (bestCombinedFormat != null) {
                         cachedVideoUrl = bestCombinedFormat.url
                         Log.d(TAG, "Got combined format (${bestCombinedFormat.height}p) from video info")
@@ -229,10 +227,8 @@ class YtDlpAndroidEngine(
                                 val hasAudio = format.acodec != null && format.acodec != "none"
                                 val hasUrl = !format.url.isNullOrEmpty()
                                 hasVideo && hasAudio && hasUrl
-                            }
-                            .sortedBy { it.height?.toString()?.toIntOrNull() ?: 0 } // Sort ascending to get lowest quality
-                            .firstOrNull()
-                        
+                            }.minByOrNull { it.height.toString().toIntOrNull() ?: 0 }
+
                         if (anyFormat != null) {
                             cachedVideoUrl = anyFormat.url
                             Log.d(TAG, "Using lowest quality format (${anyFormat.height}p) for compatibility")
@@ -255,7 +251,7 @@ class YtDlpAndroidEngine(
                 url = url,
                 title = videoInfo.title ?: "Unknown",
                 thumbnailUrl = videoInfo.thumbnail,
-                duration = formatDuration(videoInfo.duration?.toLong()),
+                duration = formatDuration(videoInfo.duration.toLong()),
                 author = videoInfo.uploader,
                 platform = platform.displayName,
                 formats = formats,
@@ -295,7 +291,7 @@ class YtDlpAndroidEngine(
                         duration = formatDuration(duration),
                         author = null,
                         platform = platform.displayName,
-                        formats = parseFormats(null),
+                        formats = parseFormats(),
                         isPlaylist = false,
                         playlistItems = emptyList()
                     ))
@@ -423,15 +419,15 @@ class YtDlpAndroidEngine(
             request.addOption("--ignore-errors")
             
             // Format selection - always use best quality
-            when {
-                format.formatId == "bestaudio" -> {
+            when (format.formatId) {
+                "bestaudio" -> {
                     // Audio only - best audio quality
                     request.addOption("-f", "bestaudio")
                     request.addOption("-x")
                     request.addOption("--audio-format", "mp3")
                     request.addOption("--audio-quality", "0")
                 }
-                format.formatId == "bestvideo" -> {
+                "bestvideo" -> {
                     // Video only - best video quality
                     request.addOption("-f", "bestvideo")
                 }
@@ -456,10 +452,10 @@ class YtDlpAndroidEngine(
                 processId
             ) { progress, etaInSeconds, line ->
                 // Parse the output line for playlist progress
-                val lineStr = line ?: ""
+                val lineStr = line
                 
                 // Check for "[download] Downloading video X of Y"
-                val playlistProgressPattern = "\\[download\\]\\s+Downloading\\s+(?:video|item)\\s+(\\d+)\\s+of\\s+(\\d+)".toRegex(RegexOption.IGNORE_CASE)
+                val playlistProgressPattern = "\\[download]\\s+Downloading\\s+(?:video|item)\\s+(\\d+)\\s+of\\s+(\\d+)".toRegex(RegexOption.IGNORE_CASE)
                 val playlistMatch = playlistProgressPattern.find(lineStr)
                 if (playlistMatch != null) {
                     val currentItem = playlistMatch.groupValues[1].toIntOrNull() ?: 0
@@ -470,7 +466,7 @@ class YtDlpAndroidEngine(
                 }
                 
                 // Check for "[download] Destination:" to get current item title
-                val destinationPattern = "\\[download\\]\\s+Destination:\\s+.*/([^/]+)\\.\\w+$".toRegex()
+                val destinationPattern = "\\[download]\\s+Destination:\\s+.*/([^/]+)\\.\\w+$".toRegex()
                 val destMatch = destinationPattern.find(lineStr)
                 if (destMatch != null) {
                     currentItemTitle = destMatch.groupValues[1].replace("_", " ")
@@ -631,33 +627,7 @@ class YtDlpAndroidEngine(
             Result.failure(EngineException("Failed to update: ${e.message}", e))
         }
     }
-    
-    /**
-     * Check if a URL is a playlist
-     */
-    suspend fun isPlaylistUrl(url: String): Boolean = withContext(Dispatchers.IO) {
-        try {
-            if (!isInitialized) {
-                initialize()
-            }
-            
-            // YouTube playlist URLs contain "playlist" or "list=" parameter
-            if (url.contains("playlist") || url.contains("list=")) {
-                return@withContext true
-            }
-            
-            // Dailymotion playlist URLs
-            if (url.contains("dailymotion") && url.contains("/playlist/")) {
-                return@withContext true
-            }
-            
-            return@withContext false
-        } catch (e: Exception) {
-            Log.w(TAG, "Error checking if URL is playlist: ${e.message}")
-            false
-        }
-    }
-    
+
     /**
      * Data class to hold streaming URLs (video and optional audio)
      */
@@ -665,16 +635,7 @@ class YtDlpAndroidEngine(
         val videoUrl: String,
         val audioUrl: String? = null
     )
-    
-    /**
-     * Get direct streaming URL for video preview
-     * Returns the highest quality format - may return separate video and audio URLs
-     */
-    suspend fun getStreamingUrl(url: String): Result<String> = withContext(Dispatchers.IO) {
-        val result = getStreamingUrls(url)
-        result.map { it.videoUrl }
-    }
-    
+
     /**
      * Get streaming URLs for video preview (video + audio separately for highest quality)
      * Returns StreamingUrls with videoUrl and optional audioUrl
@@ -739,15 +700,15 @@ class YtDlpAndroidEngine(
                     val hasVideo = format.vcodec != null && format.vcodec != "none"
                     val hasAudio = format.acodec != null && format.acodec != "none"
                     val hasUrl = !format.url.isNullOrEmpty()
-                    val height = format.height?.toString()?.toIntOrNull() ?: 0
+                    val height = format.height.toString().toIntOrNull() ?: 0
                     // Limit to 1080p max for device compatibility
                     val isPlayableResolution = height <= 1920
                     hasVideo && hasAudio && hasUrl && isPlayableResolution
                 }
                 .sortedWith(compareByDescending<com.yausername.youtubedl_android.mapper.VideoFormat> { 
-                    it.height?.toString()?.toIntOrNull() ?: 0 
+                    it.height.toString().toIntOrNull() ?: 0
                 }.thenByDescending { 
-                    it.tbr?.toString()?.toDoubleOrNull() ?: 0.0 
+                    it.tbr.toString().toDoubleOrNull() ?: 0.0
                 })
                 .firstOrNull()
             
@@ -768,10 +729,8 @@ class YtDlpAndroidEngine(
                     val hasAudio = format.acodec != null && format.acodec != "none"
                     val hasUrl = !format.url.isNullOrEmpty()
                     hasVideo && hasAudio && hasUrl
-                }
-                .sortedBy { it.height?.toString()?.toIntOrNull() ?: 0 } // Sort ascending to get lowest quality
-                .firstOrNull()
-            
+                }.minByOrNull { it.height.toString().toIntOrNull() ?: 0 }
+
             if (lowerQualityFormat != null) {
                 val formatUrl = lowerQualityFormat.url
                 if (!formatUrl.isNullOrEmpty()) {
@@ -896,7 +855,7 @@ class YtDlpAndroidEngine(
         }
     }
     
-    private fun parseFormats(videoInfo: com.yausername.youtubedl_android.mapper.VideoInfo?): List<DownloadFormat> {
+    private fun parseFormats(): List<DownloadFormat> {
         val formats = mutableListOf<DownloadFormat>()
         
         // Add best combined format

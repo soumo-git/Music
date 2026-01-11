@@ -35,6 +35,7 @@ import com.android.music.R
 import com.android.music.duo.chat.model.ChatMessage
 import com.android.music.duo.chat.model.MessageStatus
 import com.android.music.duo.chat.model.MessageType
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -76,7 +77,6 @@ fun ChatBubble(
                     MessageType.VOICE -> {
                         VoiceMessageContent(
                             duration = message.voiceDuration,
-                            isFromMe = message.isFromMe,
                             voiceData = message.voiceData,
                             messageId = message.id
                         )
@@ -202,7 +202,6 @@ private fun formatTime(timestamp: Long): String {
 @Composable
 fun VoiceMessageContent(
     duration: Long,
-    isFromMe: Boolean,
     voiceData: ByteArray?,
     messageId: String,
     modifier: Modifier = Modifier
@@ -260,6 +259,7 @@ fun VoiceMessageContent(
                     isPlaying = true
                     
                     // Update progress
+                    @OptIn(DelicateCoroutinesApi::class)
                     kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.Main) {
                         while (isPlaying && mediaPlayer.isPlaying) {
                             currentPosition = mediaPlayer.currentPosition.toLong()

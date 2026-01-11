@@ -5,6 +5,13 @@
     <!-- Splash Screen -->
     <string name="built_by">Built by</string>
     <string name="developer_name">Soumo Mukherjee</string>
+
+    <!-- Sign in dialogue -->
+    <string name="sign_in_to_sync_your_preferences">Sign in with Google</string>
+    <string name="sign_in_message">Go to Profile to sign in with Google and sync your preferences across devices</string>
+    <string name="maybe_later">Maybe later</string>
+    <string name="go_to_profile">Go to Profile</string>
+
     
     <!-- Navigation Drawer -->
     <string name="nav_drawer_open">Open navigation drawer</string>

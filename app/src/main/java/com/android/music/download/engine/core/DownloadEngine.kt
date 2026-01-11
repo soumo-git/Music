@@ -95,10 +95,4 @@ enum class DownloadProgressStatus {
 open class EngineException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
 class EngineNotInstalledException(message: String = "Download engine is not installed") : EngineException(message)
-class EngineOutdatedException(
-    val currentVersion: String,
-    val latestVersion: String,
-    message: String = "Engine is outdated. Current: $currentVersion, Latest: $latestVersion"
-) : EngineException(message)
 class ExtractionFailedException(message: String, cause: Throwable? = null) : EngineException(message, cause)
-class DownloadFailedException(message: String, cause: Throwable? = null) : EngineException(message, cause)

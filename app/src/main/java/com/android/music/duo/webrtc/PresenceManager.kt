@@ -1,21 +1,17 @@
 package com.android.music.duo.webrtc
 
-import android.content.Context
 import android.os.Build
 import android.util.Log
 import com.android.music.config.FirebaseConfig
 import com.android.music.duo.webrtc.model.PresenceStatus
 import com.google.firebase.database.*
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
 /**
  * Manages user presence (online/offline status) in Firebase RTDB
  */
-class PresenceManager(private val context: Context) {
+class PresenceManager() {
 
     companion object {
         private const val TAG = "PresenceManager"
@@ -24,9 +20,9 @@ class PresenceManager(private val context: Context) {
         @Volatile
         private var instance: PresenceManager? = null
         
-        fun getInstance(context: Context): PresenceManager {
+        fun getInstance(): PresenceManager {
             return instance ?: synchronized(this) {
-                instance ?: PresenceManager(context.applicationContext).also { instance = it }
+                instance ?: PresenceManager().also { instance = it }
             }
         }
     }
@@ -126,35 +122,6 @@ class PresenceManager(private val context: Context) {
                 cont.resume(null)
             }
         })
-    }
-
-    /**
-     * Observe presence status for a specific Duo ID in real-time
-     */
-    fun observePresence(duoId: String): Flow<PresenceStatus?> = callbackFlow {
-        val listener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    val online = snapshot.child("online").getValue(Boolean::class.java) ?: false
-                    val lastSeen = snapshot.child("lastSeen").getValue(Long::class.java) ?: 0L
-                    val deviceName = snapshot.child("deviceName").getValue(String::class.java) ?: ""
-                    trySend(PresenceStatus(online, lastSeen, deviceName))
-                } else {
-                    trySend(null)
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e(TAG, "Error observing presence", error.toException())
-                trySend(null)
-            }
-        }
-
-        presenceRef.child(duoId).addValueEventListener(listener)
-
-        awaitClose {
-            presenceRef.child(duoId).removeEventListener(listener)
-        }
     }
 
     /**

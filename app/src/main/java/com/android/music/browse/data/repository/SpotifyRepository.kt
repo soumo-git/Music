@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.flowOn
  * Repository for Spotify data operations.
  * Connects to Spotify Web API for all data.
  */
-class SpotifyRepository(private val context: Context? = null) {
+class SpotifyRepository(context: Context? = null) {
 
     private val apiService: SpotifyApiService = NetworkModule.spotifyApiService
     private val authManager: SpotifyAuthManager? = context?.let { SpotifyAuthManager.getInstance(it) }

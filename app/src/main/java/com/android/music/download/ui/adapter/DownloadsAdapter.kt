@@ -94,8 +94,7 @@ class DownloadsAdapter(
                     // Update playlist progress UI
                     val completed = item.completedItems
                     val total = item.totalItems
-                    val progressPercent = if (total > 0) (completed * 100) / total else 0
-                    
+
                     binding.tvPlaylistProgress.text = "$completed of $total songs"
                     binding.tvPlaylistPercent.text = "${item.progress}%"
                     binding.playlistProgressBar.progress = item.progress

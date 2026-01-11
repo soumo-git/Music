@@ -1,5 +1,6 @@
 package com.android.music.browse.ui.fragment
 
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -40,7 +41,12 @@ class PlaylistVideosFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        playlist = arguments?.getParcelable(ARG_PLAYLIST)
+        playlist = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            arguments?.getParcelable(ARG_PLAYLIST, YouTubePlaylist::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            arguments?.getParcelable(ARG_PLAYLIST)
+        }
         playlistId = arguments?.getString(ARG_PLAYLIST_ID) ?: playlist?.id
     }
 
@@ -212,7 +218,7 @@ class PlaylistVideosFragment : Fragment() {
                     btnDownload.visibility = View.INVISIBLE
                     progressExtracting.visibility = View.VISIBLE
                     progressDownloading.visibility = View.GONE
-                    tvPlaylistProgress?.visibility = View.GONE
+                    tvPlaylistProgress.visibility = View.GONE
                 }
                 DownloadStateManager.DownloadState.DOWNLOADING -> {
                     btnDownload.visibility = View.INVISIBLE
@@ -222,23 +228,23 @@ class PlaylistVideosFragment : Fragment() {
                     
                     // Show playlist progress if available
                     if (info.isPlaylist && info.totalItems > 0) {
-                        tvPlaylistProgress?.visibility = View.VISIBLE
-                        tvPlaylistProgress?.text = "${info.completedItems}/${info.totalItems} songs"
+                        tvPlaylistProgress.visibility = View.VISIBLE
+                        tvPlaylistProgress.text = "${info.completedItems}/${info.totalItems} songs"
                     } else {
-                        tvPlaylistProgress?.visibility = View.GONE
+                        tvPlaylistProgress.visibility = View.GONE
                     }
                 }
                 DownloadStateManager.DownloadState.COMPLETED -> {
                     btnDownload.visibility = View.VISIBLE
                     progressExtracting.visibility = View.GONE
                     progressDownloading.visibility = View.GONE
-                    tvPlaylistProgress?.visibility = View.GONE
+                    tvPlaylistProgress.visibility = View.GONE
                 }
                 else -> {
                     btnDownload.visibility = View.VISIBLE
                     progressExtracting.visibility = View.GONE
                     progressDownloading.visibility = View.GONE
-                    tvPlaylistProgress?.visibility = View.GONE
+                    tvPlaylistProgress.visibility = View.GONE
                 }
             }
         }

@@ -57,7 +57,7 @@ enum class SupportedPlatform(
     companion object {
         fun fromUrl(url: String): SupportedPlatform {
             val lowerUrl = url.lowercase()
-            return values().find { platform ->
+            return SupportedPlatform.entries.find { platform ->
                 platform.urlPatterns.any { pattern -> lowerUrl.contains(pattern) }
             } ?: GENERIC
         }

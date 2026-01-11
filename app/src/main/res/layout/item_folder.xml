@@ -57,7 +57,7 @@
         android:background="@drawable/ripple_circle"
         android:contentDescription="@null"
         android:padding="@dimen/spacing_sm"
-        android:src="@drawable/ic_more_vert"
+        android:src="@drawable/ic_menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>

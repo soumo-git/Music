@@ -5,7 +5,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.net.NetworkInfo
 import android.net.wifi.p2p.WifiP2pConfig
 import android.net.wifi.p2p.WifiP2pDevice
 import android.net.wifi.p2p.WifiP2pDeviceList
@@ -17,12 +16,9 @@ import android.os.Looper
 import android.util.Log
 import com.android.music.duo.data.model.DeviceStatus
 import com.android.music.duo.data.model.DuoDevice
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.callbackFlow
 
 /**
  * Manages WiFi Direct connections for Duo feature
@@ -50,7 +46,6 @@ class WifiDirectManager(private val context: Context) {
     val isWifiP2pEnabled: StateFlow<Boolean> = _isWifiP2pEnabled.asStateFlow()
 
     private val _groupInfo = MutableStateFlow<WifiP2pGroup?>(null)
-    val groupInfo: StateFlow<WifiP2pGroup?> = _groupInfo.asStateFlow()
 
     fun initialize() {
         channel = wifiP2pManager?.initialize(context, Looper.getMainLooper()) {
@@ -211,20 +206,21 @@ class WifiDirectManager(private val context: Context) {
 
                 WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION -> {
                     Log.d(TAG, "Connection changed action received")
-                    val networkInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO, NetworkInfo::class.java)
+                    // Use WifiP2pInfo instead of deprecated NetworkInfo
+                    val wifiP2pInfo = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        intent.getParcelableExtra(WifiP2pManager.EXTRA_WIFI_P2P_INFO, WifiP2pInfo::class.java)
                     } else {
                         @Suppress("DEPRECATION")
-                        intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO)
+                        intent.getParcelableExtra<WifiP2pInfo>(WifiP2pManager.EXTRA_WIFI_P2P_INFO)
                     }
 
-                    Log.d(TAG, "Network info: isConnected=${networkInfo?.isConnected}")
-                    if (networkInfo?.isConnected == true) {
-                        Log.d(TAG, "Network connected, requesting connection info...")
+                    Log.d(TAG, "P2P info: groupFormed=${wifiP2pInfo?.groupFormed}")
+                    if (wifiP2pInfo?.groupFormed == true) {
+                        Log.d(TAG, "Group formed, requesting connection info...")
                         requestConnectionInfo()
                         requestGroupInfo()
                     } else {
-                        Log.d(TAG, "Network disconnected")
+                        Log.d(TAG, "Group not formed or disconnected")
                         _connectionInfo.value = null
                         _groupInfo.value = null
                     }

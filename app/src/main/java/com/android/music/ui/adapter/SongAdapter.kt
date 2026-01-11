@@ -11,7 +11,7 @@ import com.android.music.R
 import com.android.music.data.model.Song
 import com.android.music.databinding.ItemSongBinding
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import androidx.core.content.ContextCompat
 
 class SongAdapter(
     private val onSongClick: (Song) -> Unit,
@@ -100,9 +100,13 @@ class SongAdapter(
                 val isPlaying = song.id == currentPlayingSongId
                 val isSelected = selectedItems.contains(song.id)
                 
+                // Reset text styling
+                tvTitle.setTextColor(ContextCompat.getColor(root.context, R.color.textPrimary))
+                
                 if (isPlaying && !isSelectionMode) {
                     ivPlayingIndicator.visibility = View.VISIBLE
-                    root.setBackgroundColor(0x1A8B5CF6)
+                    root.setBackgroundColor(0) // Transparent background
+                    tvTitle.setTextColor(ContextCompat.getColor(root.context, R.color.colorAccent))
                 } else if (isSelected) {
                     ivPlayingIndicator.visibility = View.GONE
                     root.setBackgroundColor(0x1A8B5CF6)

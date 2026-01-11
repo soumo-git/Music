@@ -153,7 +153,7 @@ class DuoSocketManager {
     /**
      * Send a ping message
      */
-    private suspend fun sendPing() {
+    private fun sendPing() {
         try {
             lastPingSentTime = System.currentTimeMillis()
             val pingMessage = DuoMessage.createPing()
@@ -269,7 +269,6 @@ class DuoSocketManager {
 }
 
 sealed class ConnectionStatus {
-    object Idle : ConnectionStatus()
     object WaitingForClient : ConnectionStatus()
     object Connecting : ConnectionStatus()
     object Connected : ConnectionStatus()
