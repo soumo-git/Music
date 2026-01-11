@@ -11,8 +11,6 @@ import com.android.music.browse.data.model.YouTubeVideo
 import java.text.DecimalFormat
 import java.time.Duration
 import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 /**
@@ -118,7 +116,7 @@ object YouTubeMapper {
                 hours > 0 -> String.format("%d:%02d:%02d", hours, minutes, seconds)
                 else -> String.format("%d:%02d", minutes, seconds)
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             isoDuration
         }
     }
@@ -129,7 +127,7 @@ object YouTubeMapper {
     fun parseDuration(isoDuration: String): Long {
         return try {
             Duration.parse(isoDuration).seconds
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             0L
         }
     }
@@ -139,9 +137,8 @@ object YouTubeMapper {
      */
     fun formatViewCount(count: String): String {
         return try {
-            val num = count.toLong()
             "${formatCount(count)} views"
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             count
         }
     }
@@ -158,7 +155,7 @@ object YouTubeMapper {
                 num >= 1_000 -> "${DecimalFormat("#.#").format(num / 1_000.0)}K"
                 else -> count
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             count
         }
     }
@@ -187,7 +184,7 @@ object YouTubeMapper {
                 months < 12 -> "$months months ago"
                 else -> "$years years ago"
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             isoDate
         }
     }

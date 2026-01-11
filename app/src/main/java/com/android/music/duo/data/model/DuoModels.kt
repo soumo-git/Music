@@ -36,12 +36,12 @@ sealed class DuoConnectionState {
 /**
  * Signal strength indicator
  */
-enum class SignalStrength(val bars: Int) {
-    NONE(0),
-    WEAK(1),
-    FAIR(2),
-    GOOD(3),
-    EXCELLENT(4)
+enum class SignalStrength() {
+    NONE,
+    WEAK,
+    FAIR,
+    GOOD,
+    EXCELLENT
 }
 
 /**
@@ -58,8 +58,6 @@ sealed class DuoCommand {
     data class SetRepeat(val mode: RepeatMode) : DuoCommand()
     data class AddToQueue(val songHashes: List<String>) : DuoCommand()
     object ClearQueue : DuoCommand()
-    data class SyncLibrary(val songHashes: List<String>) : DuoCommand()
-    data class SyncLibraryResponse(val commonSongHashes: List<String>) : DuoCommand()
     object RequestDisconnect : DuoCommand()
 }
 

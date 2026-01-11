@@ -2,7 +2,6 @@ package com.android.music.browse.ui.adapter
 
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
-import com.android.music.browse.ui.fragment.BrowseFragment
 import com.android.music.browse.ui.fragment.BrowseHomeFragment
 import com.android.music.browse.ui.fragment.BrowsePlaylistsFragment
 import com.android.music.browse.ui.fragment.BrowseProfileFragment

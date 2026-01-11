@@ -17,7 +17,7 @@ data class DuoMessage(
         fun fromJson(json: String): DuoMessage? {
             return try {
                 gson.fromJson(json, DuoMessage::class.java)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         }
@@ -91,21 +91,6 @@ data class DuoMessage(
             )
         }
 
-        fun createConnectionRequest(deviceName: String, userId: String): DuoMessage {
-            return DuoMessage(
-                type = MessageType.CONNECTION_REQUEST,
-                payload = gson.toJson(ConnectionPayload(deviceName, userId))
-            )
-        }
-
-        fun createConnectionAccept(): DuoMessage {
-            return DuoMessage(type = MessageType.CONNECTION_ACCEPT, payload = "")
-        }
-
-        fun createConnectionReject(): DuoMessage {
-            return DuoMessage(type = MessageType.CONNECTION_REJECT, payload = "")
-        }
-
         fun createDisconnect(): DuoMessage {
             return DuoMessage(type = MessageType.DISCONNECT, payload = "")
         }
@@ -171,11 +156,7 @@ enum class MessageType {
     CLEAR_QUEUE,
     SYNC_LIBRARY,
     SYNC_RESPONSE,
-    CONNECTION_REQUEST,
-    CONNECTION_ACCEPT,
-    CONNECTION_REJECT,
     DISCONNECT,
-    HEARTBEAT,
     PING,
     PONG,
     CHAT_MESSAGE,
@@ -184,16 +165,6 @@ enum class MessageType {
     MESSAGE_DELIVERED,
     MESSAGE_READ,
     VOICE_MESSAGE,
-    // File transfer message types
-    FILE_TRANSFER_REQUEST,
-    FILE_TRANSFER_ACCEPT,
-    FILE_TRANSFER_REJECT,
-    FILE_CHUNK,
-    FILE_COMPLETE,
-    FILE_ACK,
-    TRANSFER_COMPLETE,
-    TRANSFER_CANCEL,
-    CHUNK_RETRANSMIT
 }
 
 // Payload classes
@@ -204,7 +175,6 @@ data class RepeatPayload(val mode: String)
 data class QueuePayload(val songHashes: List<String>)
 data class SyncLibraryPayload(val songHashes: List<SongHash>)
 data class SyncResponsePayload(val commonHashes: List<String>)
-data class ConnectionPayload(val deviceName: String, val userId: String)
 data class ChatMessagePayload(val messageId: String, val text: String, val senderName: String)
 data class MessageAckPayload(val messageId: String)
 data class VoiceMessagePayload(val messageId: String, val senderName: String, val duration: Long, val audioBase64: String)

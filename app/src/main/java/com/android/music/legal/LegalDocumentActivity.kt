@@ -63,19 +63,20 @@ class LegalDocumentActivity : AppCompatActivity() {
     private fun formatUserAgreement(): SpannableStringBuilder {
         val builder = SpannableStringBuilder()
         val accentColor = ContextCompat.getColor(this, R.color.colorAccent)
-        val secondaryColor = ContextCompat.getColor(this, R.color.textSecondary)
-        
+
         // Intro
         appendSection(builder, null, """
 By installing, accessing, or using this application in any manner, you acknowledge that you have read, understood, and agreed to be bound by these terms. If you do not agree, please uninstall and cease all use of the application.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         builder.append("\n\n")
         
         // Section 1
         appendSection(builder, "1. Acceptance of Terms", """
 Use of the Application signifies full and unconditional acceptance of these Terms. No oral statements, assumptions, or informal communications shall supersede or modify this Agreement.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 2
         appendSection(builder, "2. Nature of the Application", """
@@ -87,7 +88,8 @@ The Application:
 • Does NOT bypass or interfere with DRM or copyright protection systems
 
 All media accessed through the Application originates from sources independently chosen by the User.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 3
         appendSection(builder, "3. User Responsibility", """
@@ -97,7 +99,8 @@ The User is solely responsible for:
 • Any consequences arising from usage
 
 The Developer shall not be construed as a publisher, distributor, or facilitator of content.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 4
         appendSection(builder, "4. Prohibited Uses", """
@@ -108,7 +111,8 @@ The Application shall NOT be used for:
 • Any activity prohibited under applicable law
 
 Misuse immediately terminates the User's right to access the Application.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 5
         appendSection(builder, "5. Third-Party Services", """
@@ -118,7 +122,8 @@ The Application may interact with Third-Party Services. The Developer:
 • Makes no warranties regarding their legality or reliability
 
 Disputes with Third-Party Services are strictly between the User and those parties.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 6
         appendSection(builder, "6. Local Connectivity Features", """
@@ -128,7 +133,8 @@ The Application may provide features enabling:
 • Local streaming via Bluetooth, Wi-Fi Direct, or similar technologies
 
 These features operate without centralized servers and transmit no data to the Developer.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 7
         appendSection(builder, "7. Disclaimer of Warranties", """
@@ -141,7 +147,8 @@ The Developer disclaims all warranties, including:
 • ACCURACY OR RELIABILITY
 
 No guarantee is made that the Application will function without interruption or error.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 8
         appendSection(builder, "8. Limitation of Liability", """
@@ -152,7 +159,8 @@ To the maximum extent permitted by law, the Developer shall not be liable for:
 • Legal actions arising from User conduct
 
 Use of the Application is at the User's sole risk.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 9
         appendSection(builder, "9. Indemnification", """
@@ -160,7 +168,8 @@ The User agrees to defend, indemnify, and hold harmless the Developer from any c
 • User misuse of the Application
 • Violation of these Terms
 • Infringement of third-party rights
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 10
         appendSection(builder, "10. Modifications", """
@@ -170,12 +179,14 @@ The Developer reserves the right to:
 • Discontinue features without prior notice
 
 Continued use constitutes acceptance of all revisions.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 11
         appendSection(builder, "11. Governing Law", """
 These Terms shall be governed by applicable laws. Any disputes shall be subject to the jurisdiction of competent courts.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Final
         builder.append("\n\n")
@@ -190,12 +201,12 @@ These Terms shall be governed by applicable laws. Any disputes shall be subject 
     private fun formatPrivacyPolicy(): SpannableStringBuilder {
         val builder = SpannableStringBuilder()
         val accentColor = ContextCompat.getColor(this, R.color.colorAccent)
-        val secondaryColor = ContextCompat.getColor(this, R.color.textSecondary)
-        
+
         // Intro
         appendSection(builder, null, """
 By installing, accessing, or using the Application, you acknowledge that you have read, understood, and agreed to this Privacy Policy.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         builder.append("\n\n")
         
@@ -217,7 +228,8 @@ The Application does NOT collect, store, transmit, or sell:
 • Audio, video, or microphone recordings
 • Device files unrelated to user-selected media
 • Biometric or sensitive personal data
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 2
         appendSection(builder, "2. Local Data Storage", """
@@ -231,7 +243,8 @@ This data:
 • Never leaves your device
 • Is not transmitted to the Developer
 • Can be deleted by uninstalling the app or clearing app data
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 3
         appendSection(builder, "3. Third-Party Services", """
@@ -243,7 +256,8 @@ The Developer:
 • Is NOT responsible for their privacy practices
 
 You are responsible for reviewing Third-Party privacy policies.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 4
         appendSection(builder, "4. Local Connectivity", """
@@ -256,7 +270,8 @@ All such communication:
 • Occurs directly between your devices
 • Does NOT pass through Developer servers
 • Is NOT monitored or logged by the Developer
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 5
         appendSection(builder, "5. Permissions", """
@@ -269,7 +284,8 @@ Permissions are:
 • Never abused
 • Never used for background surveillance
 • Fully revocable via system settings
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 6
         appendSection(builder, "6. No Analytics, No Ads, No Trackers", """
@@ -278,29 +294,34 @@ The Application:
 • Does NOT use analytics or tracking frameworks
 • Does NOT fingerprint devices
 • Does NOT perform behavioral profiling
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 7
         appendSection(builder, "7. Data Security", """
 Because no personal data is collected or transmitted, the risk of data breaches is inherently minimized.
 
 The Developer implements reasonable safeguards for local data integrity but makes no guarantees against device-level compromise.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 8
         appendSection(builder, "8. Children's Privacy", """
 The Application does not knowingly collect data from minors. Responsibility for ensuring lawful use by minors rests with parents or guardians.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 9
         appendSection(builder, "9. Policy Modifications", """
 The Developer reserves the right to modify this Privacy Policy at any time. Continued use after changes constitutes acceptance of the revised Policy.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Section 10
         appendSection(builder, "10. Governing Law", """
 This Privacy Policy shall be governed by applicable laws, without regard to conflict-of-law principles.
-        """.trimIndent(), accentColor, secondaryColor)
+        """.trimIndent(), accentColor
+        )
         
         // Final Statement
         builder.append("\n\n")
@@ -320,8 +341,7 @@ This Privacy Policy shall be governed by applicable laws, without regard to conf
         builder: SpannableStringBuilder,
         title: String?,
         content: String,
-        accentColor: Int,
-        secondaryColor: Int
+        accentColor: Int
     ) {
         if (title != null) {
             builder.append("\n")

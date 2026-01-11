@@ -8,7 +8,6 @@ import com.android.music.browse.data.api.model.YouTubeSubscriptionListResponse
 import com.android.music.browse.data.api.model.YouTubeVideoListResponse
 import retrofit2.Response
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.Query
 
 /**
@@ -100,17 +99,6 @@ interface YouTubeApiService {
         @Query("maxResults") maxResults: Int = 50,
         @Query("pageToken") pageToken: String? = null
     ): Response<YouTubePlaylistItemListResponse>
-
-    /**
-     * Get related videos (using search with relatedToVideoId)
-     */
-    @GET("search")
-    suspend fun getRelatedVideos(
-        @Query("part") part: String = "snippet",
-        @Query("relatedToVideoId") videoId: String,
-        @Query("type") type: String = "video",
-        @Query("maxResults") maxResults: Int = 15
-    ): Response<YouTubeSearchResponse>
 
     /**
      * Search for Shorts (short-form videos)

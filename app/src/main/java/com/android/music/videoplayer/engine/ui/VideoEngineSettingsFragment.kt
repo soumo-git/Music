@@ -1,5 +1,4 @@
 package com.android.music.videoplayer.engine.ui
-
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -9,7 +8,6 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
-import com.android.music.R
 import com.android.music.databinding.FragmentVideoEngineSettingsBinding
 import com.android.music.videoplayer.engine.core.VideoEngineUpdateResult
 import kotlinx.coroutines.flow.collectLatest
@@ -59,16 +57,16 @@ class VideoEngineSettingsFragment : Fragment() {
         }
         
         // Engine selection spinner
-        binding.spinnerEngine.setOnItemSelectedListener(object : android.widget.AdapterView.OnItemSelectedListener {
+        binding.spinnerEngine.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val selectedEngine = parent?.getItemAtPosition(position) as? String
                 if (selectedEngine != null && selectedEngine != viewModel.selectedEngine.value) {
                     viewModel.switchEngine(requireContext(), selectedEngine)
                 }
             }
-            
+
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
-        })
+        }
     }
     
     private fun observeViewModel() {
@@ -124,6 +122,7 @@ class VideoEngineSettingsFragment : Fragment() {
         binding.spinnerEngine.adapter = adapter
     }
     
+    @Suppress("UNCHECKED_CAST")
     private fun updateSelectedEngine(selectedEngine: String) {
         val adapter = binding.spinnerEngine.adapter as? ArrayAdapter<String>
         val position = adapter?.getPosition(selectedEngine) ?: 0

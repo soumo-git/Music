@@ -1,14 +1,17 @@
 package com.android.music.duo.chat.ui.components
 
-import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -31,20 +34,26 @@ fun MarkdownText(
     onLinkClick: ((String) -> Unit)? = null
 ) {
     val annotatedString = remember(text, color) {
-        parseMarkdown(text, color)
+        parseMarkdown(text)
     }
 
     if (onLinkClick != null) {
-        ClickableText(
+        val layoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
+        BasicText(
             text = annotatedString,
-            modifier = modifier,
-            style = style.copy(color = color),
-            onClick = { offset ->
-                annotatedString.getStringAnnotations(tag = "URL", start = offset, end = offset)
-                    .firstOrNull()?.let { annotation ->
-                        onLinkClick(annotation.item)
+            modifier = modifier.pointerInput(onLinkClick) {
+                detectTapGestures { offset ->
+                    layoutResult.value?.let { textLayoutResult ->
+                        val position = textLayoutResult.getOffsetForPosition(offset)
+                        annotatedString.getStringAnnotations(tag = "URL", start = position, end = position)
+                            .firstOrNull()?.let { annotation ->
+                                onLinkClick(annotation.item)
+                            }
                     }
-            }
+                }
+            },
+            style = style.copy(color = color),
+            onTextLayout = { layoutResult.value = it }
         )
     } else {
         androidx.compose.material3.Text(
@@ -55,7 +64,7 @@ fun MarkdownText(
     }
 }
 
-private fun parseMarkdown(text: String, baseColor: Color): AnnotatedString {
+private fun parseMarkdown(text: String): AnnotatedString {
     return buildAnnotatedString {
         var currentIndex = 0
         val length = text.length

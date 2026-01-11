@@ -17,7 +17,6 @@ import com.android.music.databinding.LayoutPlayerBarBinding
 import com.android.music.service.MusicService
 import com.android.music.ui.adapter.SongAdapter
 import com.android.music.ui.fragment.PlayerSheetFragment
-import com.bumptech.glide.Glide
 
 class SongsListActivity : AppCompatActivity() {
 

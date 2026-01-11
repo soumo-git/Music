@@ -359,7 +359,7 @@ class FolderContentsActivity : AppCompatActivity() {
     }
     
     // Inner adapter for ViewPager
-    inner class FolderContentsPagerAdapter(
+    class FolderContentsPagerAdapter(
         activity: FragmentActivity,
         private val songs: List<Song>,
         private val videos: List<Video>

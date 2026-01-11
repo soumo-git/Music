@@ -22,7 +22,7 @@ import kotlinx.coroutines.flow.flowOn
  * Repository for YouTube data operations.
  * Connects to YouTube Data API v3 for real data only.
  */
-class YouTubeRepository(private val context: Context? = null) {
+class YouTubeRepository(context: Context? = null) {
 
     private val apiService: YouTubeApiService = NetworkModule.youtubeApiService
     private val authManager: YouTubeAuthManager? = context?.let { YouTubeAuthManager.getInstance(it) }
@@ -30,7 +30,7 @@ class YouTubeRepository(private val context: Context? = null) {
     /**
      * Get OAuth token from authenticated user's Google account
      */
-    private suspend fun getOAuthToken(): String? {
+    private fun getOAuthToken(): String? {
         return try {
             authManager?.getAccessToken()
         } catch (e: Exception) {
@@ -109,7 +109,7 @@ class YouTubeRepository(private val context: Context? = null) {
                 
                 // Get video details for duration and view count
                 if (videos.isNotEmpty()) {
-                    val videoIds = videos.map { it.id }.joinToString(",")
+                    val videoIds = videos.joinToString(",") { it.id }
                     val detailsResponse = apiService.getVideos(ids = videoIds)
                     
                     if (detailsResponse.isSuccessful) {
@@ -227,36 +227,6 @@ class YouTubeRepository(private val context: Context? = null) {
     }.flowOn(Dispatchers.IO)
 
     /**
-     * Get video details by ID
-     */
-    fun getVideoDetails(videoId: String): Flow<Result<YouTubeVideo>> = flow {
-        try {
-            val token = getOAuthToken()
-            if (token == null) {
-                emit(Result.failure(Exception("User not authenticated")))
-                return@flow
-            }
-            
-            NetworkModule.oauthToken = token
-            
-            val response = apiService.getVideos(ids = videoId)
-
-            if (response.isSuccessful) {
-                val video = response.body()?.items?.firstOrNull()?.toYouTubeVideo()
-                if (video != null) {
-                    emit(Result.success(video))
-                } else {
-                    emit(Result.failure(Exception("Video not found")))
-                }
-            } else {
-                emit(Result.failure(Exception("Failed to load video: ${response.code()}")))
-            }
-        } catch (e: Exception) {
-            emit(Result.failure(e))
-        }
-    }.flowOn(Dispatchers.IO)
-
-    /**
      * Get related videos - Using search with video title instead of deprecated relatedToVideoId
      */
     fun getRelatedVideos(videoId: String): Flow<Result<List<YouTubeVideo>>> = flow {
@@ -349,8 +319,8 @@ class YouTubeRepository(private val context: Context? = null) {
             )
 
             if (response.isSuccessful) {
-                val videoIds = response.body()?.items?.mapNotNull { 
-                    it.id?.videoId 
+                val videoIds = response.body()?.items?.mapNotNull {
+                    it.id.videoId
                 }?.joinToString(",") ?: ""
                 
                 if (videoIds.isNotEmpty()) {

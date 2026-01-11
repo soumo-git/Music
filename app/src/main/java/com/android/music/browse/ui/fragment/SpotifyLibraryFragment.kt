@@ -49,7 +49,7 @@ class SpotifyLibraryFragment : Fragment() {
             onArtistClick = { track ->
                 Toast.makeText(requireContext(), "Artist: ${track.artistName}", Toast.LENGTH_SHORT).show()
             },
-            onMoreClick = { track, anchor ->
+            onMoreClick = { _, _ ->
                 // TODO: Show options menu
             }
         )

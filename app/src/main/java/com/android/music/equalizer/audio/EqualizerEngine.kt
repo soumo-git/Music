@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.android.music.equalizer.audio
 
 import android.media.audiofx.Equalizer
@@ -42,14 +43,11 @@ class EqualizerEngine {
     val isEnabled: StateFlow<Boolean> = _isEnabled.asStateFlow()
     
     private val _bandLevels = MutableStateFlow<List<Int>>(emptyList())
-    val bandLevels: StateFlow<List<Int>> = _bandLevels.asStateFlow()
-    
+
     private val _bassBoostStrength = MutableStateFlow(0)
-    val bassBoostStrength: StateFlow<Int> = _bassBoostStrength.asStateFlow()
-    
+
     private val _virtualizerStrength = MutableStateFlow(0)
-    val virtualizerStrength: StateFlow<Int> = _virtualizerStrength.asStateFlow()
-    
+
     /**
      * Initialize the equalizer engine with an audio session ID
      * If already initialized with a different session, release and re-initialize
@@ -154,14 +152,7 @@ class EqualizerEngine {
     fun getNumberOfBands(): Int {
         return equalizer?.numberOfBands?.toInt() ?: 5
     }
-    
-    /**
-     * Get the frequency range for a band
-     */
-    fun getBandFrequencyRange(band: Int): IntArray {
-        return equalizer?.getBandFreqRange(band.toShort()) ?: intArrayOf(0, 0)
-    }
-    
+
     /**
      * Get the center frequency for a band in Hz
      */
@@ -268,9 +259,5 @@ class EqualizerEngine {
      * Check if the engine is initialized
      */
     fun isInitialized(): Boolean = isInitialized
-    
-    /**
-     * Get current audio session ID
-     */
-    fun getAudioSessionId(): Int = audioSessionId
+
 }

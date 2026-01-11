@@ -8,7 +8,6 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.android.music.browse.data.model.SpotifyTrack
 import com.android.music.browse.ui.adapter.SpotifyTrackAdapter
 import com.android.music.browse.ui.viewmodel.SpotifyViewModel
 import com.android.music.databinding.FragmentSpotifyHomeBinding
@@ -52,7 +51,7 @@ class SpotifyHomeFragment : Fragment() {
                 // TODO: Navigate to artist page
                 Toast.makeText(requireContext(), "Artist: ${track.artistName}", Toast.LENGTH_SHORT).show()
             },
-            onMoreClick = { track, anchor ->
+            onMoreClick = { _, _ ->
                 // TODO: Show options menu
             }
         )

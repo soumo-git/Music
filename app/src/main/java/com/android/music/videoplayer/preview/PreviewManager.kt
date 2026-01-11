@@ -80,16 +80,7 @@ object PreviewManager {
             }
         }
     }
-    
-    /**
-     * Get current cached preview (regardless of URL).
-     */
-    fun getCurrentPreview(): PreviewCache? {
-        synchronized(lock) {
-            return currentCache
-        }
-    }
-    
+
     /**
      * Save playback position for resume functionality.
      */
@@ -110,27 +101,7 @@ object PreviewManager {
             return currentCache?.savedPositionMs ?: 0L
         }
     }
-    
-    /**
-     * Clear all cached preview data.
-     * Called when user pastes a new link.
-     */
-    fun clearCache() {
-        synchronized(lock) {
-            Log.d(TAG, "Clearing preview cache")
-            currentCache = null
-        }
-    }
-    
-    /**
-     * Check if preview is cached for a URL.
-     */
-    fun hasCachedPreview(originalUrl: String): Boolean {
-        synchronized(lock) {
-            return currentCache?.originalUrl == originalUrl
-        }
-    }
-    
+
     /**
      * Extract content and cache streaming URLs for instant preview.
      * This is the main entry point for extraction with preview support.
@@ -150,16 +121,12 @@ object PreviewManager {
             
             val engineManager = EngineManagerFactory.getInstance(context)
             val engine = engineManager.getEngine()
-            
-            if (engine == null) {
-                return@withContext Result.failure(Exception("Download engine not installed"))
-            }
-            
-            val ytDlpEngine = engine as? YtDlpAndroidEngine
-            if (ytDlpEngine == null) {
-                return@withContext Result.failure(Exception("Preview requires yt-dlp engine"))
-            }
-            
+                ?: return@withContext Result.failure(Exception("Download engine not installed"))
+
+            val ytDlpEngine = engine as? YtDlpAndroidEngine ?: return@withContext Result.failure(
+                Exception("Preview requires yt-dlp engine")
+            )
+
             Log.d(TAG, "Extracting content with preview URLs for: $url")
             
             // Extract content with streaming URL pre-fetching

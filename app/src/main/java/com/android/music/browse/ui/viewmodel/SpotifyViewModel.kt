@@ -40,10 +40,8 @@ class SpotifyViewModel(application: Application) : AndroidViewModel(application)
     val savedTracks: LiveData<List<SpotifyTrack>> = _savedTracks
 
     private val _savedAlbums = MutableLiveData<List<SpotifyAlbum>>()
-    val savedAlbums: LiveData<List<SpotifyAlbum>> = _savedAlbums
 
     private val _userPlaylists = MutableLiveData<List<SpotifyPlaylist>>()
-    val userPlaylists: LiveData<List<SpotifyPlaylist>> = _userPlaylists
 
     // Profile
     private val _userProfile = MutableLiveData<SpotifyUserProfile>()
@@ -51,7 +49,6 @@ class SpotifyViewModel(application: Application) : AndroidViewModel(application)
 
     // Current track for player
     private val _currentTrack = MutableLiveData<SpotifyTrack?>()
-    val currentTrack: LiveData<SpotifyTrack?> = _currentTrack
 
     // Error handling
     private val _error = MutableLiveData<String?>()
@@ -140,44 +137,6 @@ class SpotifyViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun loadSavedAlbums() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            repository.getSavedAlbums()
-                .catch { e ->
-                    _error.value = e.message
-                    _isLoading.value = false
-                }
-                .collect { result ->
-                    result.onSuccess { albums ->
-                        _savedAlbums.value = albums
-                    }.onFailure { e ->
-                        _error.value = e.message
-                    }
-                    _isLoading.value = false
-                }
-        }
-    }
-
-    fun loadUserPlaylists() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            repository.getUserPlaylists()
-                .catch { e ->
-                    _error.value = e.message
-                    _isLoading.value = false
-                }
-                .collect { result ->
-                    result.onSuccess { playlists ->
-                        _userPlaylists.value = playlists
-                    }.onFailure { e ->
-                        _error.value = e.message
-                    }
-                    _isLoading.value = false
-                }
-        }
-    }
-
     fun loadUserProfile() {
         viewModelScope.launch {
             _isLoading.value = true
@@ -202,10 +161,6 @@ class SpotifyViewModel(application: Application) : AndroidViewModel(application)
         // TODO: Integrate with Spotify SDK for playback
     }
 
-    fun clearCurrentTrack() {
-        _currentTrack.value = null
-    }
-
     fun clearError() {
         _error.value = null
     }
@@ -221,5 +176,4 @@ class SpotifyViewModel(application: Application) : AndroidViewModel(application)
         _currentTrack.value = null
     }
 
-    fun getAuthManager(): SpotifyAuthManager = authManager
 }

@@ -58,7 +58,6 @@ class BrowseViewModel(application: Application) : AndroidViewModel(application) 
 
     // Current video for player
     private val _currentVideo = MutableLiveData<YouTubeVideo?>()
-    val currentVideo: LiveData<YouTubeVideo?> = _currentVideo
 
     // Related videos
     private val _relatedVideos = MutableLiveData<List<YouTubeVideo>>()
@@ -242,10 +241,6 @@ class BrowseViewModel(application: Application) : AndroidViewModel(application) 
                     }
                 }
         }
-    }
-
-    fun clearCurrentVideo() {
-        _currentVideo.value = null
     }
 
     fun clearError() {

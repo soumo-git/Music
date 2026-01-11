@@ -33,7 +33,7 @@ class ExoPlayerEngine(private val context: Context) : VideoEngine {
     private var mediaSourceFactory: DefaultMediaSourceFactory? = null
     private var currentPlayerView: PlayerView? = null
     
-    private val _playerState = MutableStateFlow<VideoPlayerState>(VideoPlayerState.IDLE)
+    private val _playerState = MutableStateFlow(VideoPlayerState.IDLE)
     override val playerState: StateFlow<VideoPlayerState> = _playerState.asStateFlow()
     
     private val _currentPosition = MutableStateFlow(0L)
@@ -59,7 +59,7 @@ class ExoPlayerEngine(private val context: Context) : VideoEngine {
     
     private var isInitialized = false
     
-    override suspend fun getInstalledVersion(): String? {
+    override suspend fun getInstalledVersion(): String {
         return ENGINE_VERSION
     }
     
@@ -298,15 +298,7 @@ class ExoPlayerEngine(private val context: Context) : VideoEngine {
             Log.e(TAG, "Error in releaseInternal: ${e.message}")
         }
     }
-    
-    /**
-     * Update position state (call from UI timer)
-     */
-    fun updatePositionState() {
-        _currentPosition.value = exoPlayer?.currentPosition ?: 0L
-        _bufferedPosition.value = exoPlayer?.bufferedPosition ?: 0L
-    }
-    
+
     /**
      * Clear error state
      */
@@ -320,7 +312,7 @@ class ExoPlayerEngine(private val context: Context) : VideoEngine {
     fun isPlaying(): Boolean {
         return try {
             exoPlayer?.isPlaying ?: false
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }

@@ -20,17 +20,6 @@ data class PresenceStatus(
 )
 
 /**
- * WebRTC signaling offer/answer
- */
-data class SignalingData(
-    val type: String = "", // "offer" or "answer"
-    val sdp: String = "",
-    val fromId: String = "",
-    val fromDeviceName: String = "",
-    val timestamp: Long = System.currentTimeMillis()
-)
-
-/**
  * Connection request stored in Firebase
  */
 data class ConnectionRequest(
@@ -39,15 +28,6 @@ data class ConnectionRequest(
     val offer: String = "",
     val timestamp: Long = System.currentTimeMillis(),
     val status: String = "pending" // pending, accepted, rejected, expired
-)
-
-/**
- * Connection response
- */
-data class ConnectionResponse(
-    val fromId: String = "",
-    val answer: String = "",
-    val timestamp: Long = System.currentTimeMillis()
 )
 
 /**
@@ -78,8 +58,5 @@ sealed class WebRTCConnectionState {
  * Incoming connection request state
  */
 sealed class IncomingRequestState {
-    object None : IncomingRequestState()
     data class Pending(val request: ConnectionRequest) : IncomingRequestState()
-    object Accepted : IncomingRequestState()
-    object Rejected : IncomingRequestState()
 }

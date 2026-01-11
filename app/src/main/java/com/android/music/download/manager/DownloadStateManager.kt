@@ -73,34 +73,5 @@ object DownloadStateManager {
         )
         _downloadStates.value = current
     }
-    
-    /**
-     * Get state for a video
-     */
-    fun getState(videoId: String): DownloadInfo {
-        return _downloadStates.value[videoId] ?: DownloadInfo()
-    }
-    
-    /**
-     * Clear state for a video
-     */
-    fun clearState(videoId: String) {
-        val current = _downloadStates.value.toMutableMap()
-        current.remove(videoId)
-        _downloadStates.value = current
-    }
-    
-    /**
-     * Check if video is being extracted
-     */
-    fun isExtracting(videoId: String): Boolean {
-        return getState(videoId).state == DownloadState.EXTRACTING
-    }
-    
-    /**
-     * Check if video is being downloaded
-     */
-    fun isDownloading(videoId: String): Boolean {
-        return getState(videoId).state == DownloadState.DOWNLOADING
-    }
+
 }

@@ -70,10 +70,4 @@ object DuoPermissionHelper {
         }
     }
 
-    /**
-     * Check if all requirements are met for WiFi Direct
-     */
-    fun canUseWifiDirect(context: Context): Boolean {
-        return hasRequiredPermissions(context) && isWifiEnabled(context) && isLocationEnabled(context)
-    }
 }

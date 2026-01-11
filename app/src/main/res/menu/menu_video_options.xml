@@ -10,6 +10,6 @@
         android:title="@string/video_delete"/>
     <item
         android:id="@+id/action_info"
-        android:icon="@drawable/ic_info"
+        android:icon="@drawable/ic_error"
         android:title="@string/video_info"/>
 </menu>

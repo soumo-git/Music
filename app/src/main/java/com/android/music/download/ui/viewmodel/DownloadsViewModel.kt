@@ -40,7 +40,7 @@ class DownloadsViewModel : ViewModel() {
     private val gson = Gson()
     private var appContext: Context? = null
 
-    private val _isLoading = MutableLiveData<Boolean>(false)
+    private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
     private val _downloads = MutableLiveData<List<DownloadItem>>(emptyList())
@@ -689,14 +689,14 @@ class DownloadsViewModel : ViewModel() {
             
             download?.filePath?.let { path ->
                 try {
-                    val file = java.io.File(path)
+                    val file = File(path)
                     if (file.isDirectory) {
                         // Delete folder and all contents recursively
                         file.deleteRecursively()
                     } else {
                         file.delete()
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     // Ignore file deletion errors
                 }
             }
@@ -705,23 +705,6 @@ class DownloadsViewModel : ViewModel() {
             _downloads.value = currentDownloads
             persistDownloads()
         }
-    }
-
-    fun searchDownloads(query: String) {
-        viewModelScope.launch {
-            val allDownloads = _downloads.value ?: return@launch
-            val filtered = allDownloads.filter { download ->
-                download.title.contains(query, ignoreCase = true) ||
-                download.author?.contains(query, ignoreCase = true) == true ||
-                download.platform.contains(query, ignoreCase = true)
-            }
-            _downloads.value = filtered
-        }
-    }
-
-    fun clearSearch() {
-        // Reload from storage to restore full list
-        loadSavedDownloads()
     }
 
     fun clearError() {

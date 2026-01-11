@@ -3,7 +3,6 @@ package com.android.music.settings
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import com.android.music.R
 import com.android.music.databinding.ActivitySettingsBinding
 import com.android.music.download.engine.ui.EngineSettingsFragment
 import com.android.music.videoplayer.engine.ui.VideoEngineSettingsFragment

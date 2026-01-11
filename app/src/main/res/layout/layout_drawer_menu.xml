@@ -69,7 +69,7 @@
         <ImageView
             android:layout_width="@dimen/drawer_icon_size"
             android:layout_height="@dimen/drawer_icon_size"
-            android:src="@drawable/ic_equalizer_menu"
+            android:src="@drawable/ic_equalizer"
             android:contentDescription="@null"/>
 
         <TextView

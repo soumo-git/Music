@@ -27,10 +27,7 @@ data class Thumbnails(
     @SerializedName("standard") val standard: Thumbnail?,
     @SerializedName("maxres") val maxres: Thumbnail?
 ) {
-    fun getBestQuality(): String? {
-        return maxres?.url ?: standard?.url ?: high?.url ?: medium?.url ?: default?.url
-    }
-    
+
     fun getMediumQuality(): String? {
         return high?.url ?: medium?.url ?: default?.url
     }

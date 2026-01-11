@@ -9,7 +9,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.music.R
-import com.android.music.data.model.Album
 import com.android.music.databinding.FragmentAlbumsBinding
 import com.android.music.ui.adapter.AlbumAdapter
 import com.android.music.ui.viewmodel.MusicViewModel

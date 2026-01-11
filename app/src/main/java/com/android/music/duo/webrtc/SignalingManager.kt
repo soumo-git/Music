@@ -222,47 +222,6 @@ class SignalingManager {
     }
 
     /**
-     * Observe notify requests for when we come online
-     */
-    fun observeNotifyRequests(myDuoId: String): Flow<List<NotifyRequest>> = callbackFlow {
-        val listener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val requests = snapshot.children.mapNotNull { child ->
-                    try {
-                        val requesterId = child.child("requesterId").getValue(String::class.java) ?: return@mapNotNull null
-                        val requesterDeviceName = child.child("requesterDeviceName").getValue(String::class.java) ?: ""
-                        val timestamp = child.child("timestamp").getValue(Long::class.java) ?: 0L
-                        
-                        NotifyRequest(requesterId, requesterDeviceName, timestamp)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Error parsing notify request", e)
-                        null
-                    }
-                }
-                trySend(requests)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e(TAG, "Error observing notify requests", error.toException())
-                trySend(emptyList())
-            }
-        }
-
-        notifyRef.child(myDuoId).addValueEventListener(listener)
-
-        awaitClose {
-            notifyRef.child(myDuoId).removeEventListener(listener)
-        }
-    }
-
-    /**
-     * Clear notify request after handling
-     */
-    fun clearNotifyRequest(myDuoId: String, requesterId: String) {
-        notifyRef.child(myDuoId).child(requesterId).removeValue()
-    }
-
-    /**
      * Cleanup all listeners
      */
     fun cleanup() {

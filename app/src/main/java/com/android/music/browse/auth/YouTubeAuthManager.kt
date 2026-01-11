@@ -2,7 +2,6 @@ package com.android.music.browse.auth
 
 import android.content.Context
 import android.content.Intent
-import androidx.activity.result.ActivityResultLauncher
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
@@ -24,6 +23,7 @@ class YouTubeAuthManager(private val context: Context) {
         // YouTube Data API v3 scopes
         const val SCOPE_YOUTUBE_READONLY = "https://www.googleapis.com/auth/youtube.readonly"
         const val SCOPE_YOUTUBE = "https://www.googleapis.com/auth/youtube"
+        @Suppress("unused")
         const val SCOPE_YOUTUBE_FORCE_SSL = "https://www.googleapis.com/auth/youtube.force-ssl"
         
         @Volatile
@@ -40,7 +40,6 @@ class YouTubeAuthManager(private val context: Context) {
     val authState: StateFlow<YouTubeAuthState> = _authState.asStateFlow()
 
     private val _currentAccount = MutableStateFlow<GoogleSignInAccount?>(null)
-    val currentAccount: StateFlow<GoogleSignInAccount?> = _currentAccount.asStateFlow()
 
     private val googleSignInClient: GoogleSignInClient by lazy {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
@@ -109,22 +108,9 @@ class YouTubeAuthManager(private val context: Context) {
     }
 
     /**
-     * Revoke access (disconnect app from Google account)
-     */
-    suspend fun revokeAccess() {
-        try {
-            googleSignInClient.revokeAccess().await()
-            _currentAccount.value = null
-            _authState.value = YouTubeAuthState.NotAuthenticated
-        } catch (e: Exception) {
-            _authState.value = YouTubeAuthState.Error("Revoke failed: ${e.message}")
-        }
-    }
-
-    /**
      * Get the OAuth2 access token for API calls
      */
-    suspend fun getAccessToken(): String? {
+    fun getAccessToken(): String? {
         val account = _currentAccount.value ?: return null
         return try {
             // Get fresh token using GoogleAuthUtil

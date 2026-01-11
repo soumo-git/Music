@@ -154,20 +154,7 @@ class MusicService : Service() {
         queue.add(song)
         broadcastQueueUpdate()
     }
-    
-    /**
-     * Get current queue
-     */
-    fun getQueue(): List<Song> = queue.toList()
-    
-    /**
-     * Clear the queue
-     */
-    fun clearQueue() {
-        queue.clear()
-        broadcastQueueUpdate()
-    }
-    
+
     private fun broadcastQueueUpdate() {
         val intent = Intent(BROADCAST_QUEUE_UPDATE).apply {
             putExtra(EXTRA_QUEUE_SIZE, queue.size)

@@ -37,7 +37,6 @@ class LocalVideoPlayerActivity : AppCompatActivity() {
         
         // Broadcast actions
         const val BROADCAST_VIDEO_STATE = "com.android.music.VIDEO_STATE"
-        const val BROADCAST_VIDEO_PROGRESS = "com.android.music.VIDEO_PROGRESS"
         const val EXTRA_IS_PLAYING = "extra_is_playing"
         const val EXTRA_POSITION = "extra_position"
         const val EXTRA_DURATION = "extra_duration"
@@ -61,10 +60,7 @@ class LocalVideoPlayerActivity : AppCompatActivity() {
         
         fun getCurrentVideo(): Video? = currentVideo
         fun isPlaying(): Boolean = sharedPlayer?.isPlaying == true
-        fun getPlayer(): ExoPlayer? = sharedPlayer
-        fun getCurrentPosition(): Long = sharedPlayer?.currentPosition ?: 0L
-        fun getDuration(): Long = sharedPlayer?.duration ?: 0L
-        
+
         fun togglePlayPause() {
             sharedPlayer?.let { player ->
                 if (player.isPlaying) {
@@ -200,10 +196,10 @@ class LocalVideoPlayerActivity : AppCompatActivity() {
     
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     private fun cycleZoomMode(zoomIn: Boolean) {
-        if (zoomIn) {
-            currentZoomMode = (currentZoomMode + 1).coerceAtMost(2)
+        currentZoomMode = if (zoomIn) {
+            (currentZoomMode + 1).coerceAtMost(2)
         } else {
-            currentZoomMode = (currentZoomMode - 1).coerceAtLeast(0)
+            (currentZoomMode - 1).coerceAtLeast(0)
         }
         
         val resizeMode = when (currentZoomMode) {
@@ -329,7 +325,12 @@ class LocalVideoPlayerActivity : AppCompatActivity() {
         // Save current position and finish activity
         // Player continues in background via sharedPlayer
         finish()
-        overridePendingTransition(0, R.anim.slide_down)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            overrideActivityTransition(OVERRIDE_TRANSITION_CLOSE, 0, R.anim.slide_down)
+        } else {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(0, R.anim.slide_down)
+        }
     }
     
     private fun toggleOrientation() {
